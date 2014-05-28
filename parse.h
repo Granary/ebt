@@ -21,7 +21,7 @@ struct source_loc
 {
   sj_file *file;
   unsigned line;
-  unsigned column;
+  unsigned col;
 };
 
 std::ostream& operator << (std::ostream& o, const source_loc& loc);

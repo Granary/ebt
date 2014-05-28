@@ -30,8 +30,8 @@ usage(const char *prog_name)
           "   or: %s [options] -e SCRIPT\n"
           "\n"
           "Options and arguments:\n"
-          "  -e SCRIPT   : one-liner program\n" // TODOXXX
-          "  -g FILENAME : output script to file, instead of stdout\n", // TODOXXX
+          "  -e SCRIPT   : one-liner program\n"
+          "  -g FILENAME : output script to file, instead of stdout\n",
           prog_name, prog_name);
   exit(1);
 }
