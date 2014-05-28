@@ -7,5 +7,15 @@ sj: $(SJ_SOURCES)
 
 all: sj
 
+check: sj
+	test/test_all.sh
+
 clean:
 	rm -f ./sj
+
+# Purely informational targets:
+
+count:
+	@echo "PROJECT SOURCE CODE SUMMARY"
+	@echo "==========================="
+	@wc *.cc *.h Makefile README.md test/*.sh
