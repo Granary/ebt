@@ -32,14 +32,17 @@ void
 sj_module::compile()
 {
   sj_file *f;
-  if (has_contents) {
-    istringstream input(script_contents);
-    script_files.push_back(parse(this, input));
-  } else {
-    ifstream input(script_path.c_str());
-    if (!input.is_open()) { perror("cannot open script file"); exit(1); } // TODOXXX: exit() doesn't really fit here -- use an rc
-    script_files.push_back(parse(this, input));
-  }
+  if (has_contents)
+    {
+      istringstream input(script_contents);
+      script_files.push_back(parse(this, input));
+    }
+  else
+    {
+      ifstream input(script_path.c_str());
+      if (!input.is_open()) { perror("cannot open script file"); exit(1); } // TODOXXX: exit() doesn't really fit here -- use an rc
+      script_files.push_back(parse(this, input));
+    }
 }
 
 /* XXX no particularly fancy infrastructure for now */
