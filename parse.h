@@ -37,6 +37,11 @@ struct token
 
 std::ostream& operator << (std::ostream& o, const token& tok);
 
+void test_lexer (sj_module* m, std::istream& i,
+                 const std::string source_name = "");
+void test_lexer (sj_module* m, const std::string& n,
+                 const std::string source_name = "");
+
 sj_file *parse (sj_module* m, std::istream& i,
                 const std::string source_name = "");
 sj_file *parse (sj_module* m, const std::string& n,

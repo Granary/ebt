@@ -31,7 +31,8 @@ usage(const char *prog_name)
           "\n"
           "Options and arguments:\n"
           "  -e SCRIPT   : one-liner program\n"
-          "  -g FILENAME : output script to file, instead of stdout\n",
+          "  -g FILENAME : output script to file, instead of stdout\n"
+          "  -p PASS     : stop after pass (0:lex, 1:parse, 2:resolve, 3:emit)\n",
           prog_name, prog_name);
   exit(1);
 }
@@ -47,7 +48,7 @@ main (int argc, char * const argv [])
 
   /* parse options */
   char c;
-  while ((c = getopt(argc, argv, "g:e:")) != -1)
+  while ((c = getopt(argc, argv, "g:e:p:")) != -1)
     {
       switch (c)
         {
@@ -59,6 +60,16 @@ main (int argc, char * const argv [])
         case 'g':
           has_outfile = true;
           outfile_path = optarg;
+          break;
+        case 'p':
+          char *num_endptr;
+          script.last_pass = (int)strtoul(optarg, &num_endptr, 10);
+          if (*num_endptr != '\0' || script.last_pass < 0 || script.last_pass > 3)
+            {
+              cerr << "Invalid pass number (should be 0-3)." << endl;
+              // XXX print usage?
+              exit(1);
+            }
           break;
         default:
           usage(argv[0]);
@@ -80,8 +91,12 @@ main (int argc, char * const argv [])
       script.script_name = script.script_path; // TODOXXX set script.script_name properly to *just* the filename
     }
 
-  // perform ast translation
+  // perform ast translation -- passes 0-2
   script.compile();
+
+  // emit final module -- pass 3
+  if (script.last_pass < 3)
+    exit(0);
 
   ofstream outfile;
   if (has_outfile)
