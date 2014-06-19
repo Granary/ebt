@@ -57,7 +57,7 @@ struct conditional_expr: public expr {
 // An event is one of the following:
 // - named_event       : [EVENT '.'] IDENTIFIER
 // - conditional_event : EVENT '(' EXPR ')'
-// - compound_event    : 'not' EVENT, EVENT 'and' EVENT, EVENT 'or' EVENT
+// - compound_event    : 'not' EVENT, EVENT 'and' EVENT, EVENT 'or' EVENT, EVENT '::' EVENT
 
 struct event {
   token *tok;
@@ -82,6 +82,8 @@ struct compound_event: public event {
 
 // SKETCH OF HOW EVENT RESOLUTION PROCEEDS
 // =======================================
+//
+// TODOXXX (!!!) also consider the "restrict" operation A :: B
 //
 // Some basic algebraic laws governing events:
 // - A and (B or C) = (A and B) or (A and C)
@@ -149,8 +151,6 @@ struct basic_probe {
   handler *body;
 };
 
-// TODOXXX void resolve_events (event *event_expr, std::vector<basic_event *> &results);
-
 struct sj_file {
   sj_file ();
   sj_file (const std::string& name);
@@ -167,7 +167,12 @@ struct translator_output;
 struct sj_module {
 private:
   std::vector<sj_file *> script_files;
-  std::map<basic_probe_type, std::vector<basic_probe *> > probe_map; // TODOXXX
+
+  std::map<basic_probe_type, std::vector<basic_probe *> > basic_probes;
+
+  // Add the event represented by event_expr to basic_probes:
+  void resolve_events (event *event_expr);
+  // XXX also take into account the handler code!
 
 public:
 

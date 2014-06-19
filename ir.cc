@@ -35,21 +35,30 @@ sj_module::compile()
   if (has_contents)
     {
       istringstream input(script_contents);
-      if (last_pass >= 1)
-        script_files.push_back(parse(this, input));
-      else
-        test_lexer(this, input);
+
+      if (last_pass < 1)
+        {
+          test_lexer(this, input);
+          return;
+        }
+
+      script_files.push_back(parse(this, input));
     }
   else
     {
       ifstream input(script_path.c_str());
       if (!input.is_open()) { perror("cannot open script file"); exit(1); } // TODOXXX: exit() doesn't really fit here -- use an rc
 
-      if (last_pass >= 1)
-        script_files.push_back(parse(this, input));
-      else
-        test_lexer(this, input);
+      if (last_pass < 1)
+        {
+          test_lexer(this, input);
+          return;
+        }
+
+      script_files.push_back(parse(this, input));
     }
+
+  /* TODOXXX (!!!) go through all script files and resolve_events() to build probe_map */
 }
 
 /* XXX no particularly fancy infrastructure for now */

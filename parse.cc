@@ -130,6 +130,7 @@ lexer::lexer(sj_module* m, sj_file *f, istream& input)
       operators.insert(")");
 
       operators.insert(".");
+      operators.insert("::");
 
       operators.insert("$");
       // operators.insert("@");
@@ -347,6 +348,7 @@ lexer::scan()
 // event_expr ::= "not" event_expr
 // event_expr ::= event_expr "and" event_expr
 // event_expr ::= event_expr "or" event_expr
+// event_expr ::= event_expr "::" event_expr
 //
 // expr ::= ["$" | "@"] IDENTIFIER
 // expr ::= NUMBER
@@ -402,7 +404,7 @@ public:
   // 10 left  - |
   // 11 left  - &&
   // 12 left  - ||
-  // 13 right - ?:
+  // 13 right - ?: // TODOXXX correct associativity?
 
   expr *parse_basic_expr();
   // XXX expr *parse_sigil();
@@ -427,6 +429,7 @@ public:
   // 3 left  - not EVENT
   // 4 left  - EVENT and EVENT
   // 5 left  - EVENT or EVENT
+  // 6 left  - EVENT :: EVENT // TODOXXX correct associativity??
 
   // TODOXXX swap precedence levels 1 and 2, perhaps???
 
@@ -436,6 +439,7 @@ public:
   event *parse_event_not ();
   event *parse_event_and ();
   event *parse_event_or ();
+  event *parse_event_restrict ();
   event *parse_event_expr ();
 
   probe *parse_probe ();
@@ -986,9 +990,30 @@ parser::parse_event_or ()
 }
 
 event *
+parser::parse_event_restrict ()
+{
+  event *op1 = parse_event_or ();
+  compound_event *e = NULL;
+
+  token* t;
+  while (peek_op("::", t))
+    {
+      e = new compound_event;
+      e->tok = t;
+      e->op = t->content;
+      e->subevents.push_back(op1);
+      next ();
+      e->subevents.push_back(parse_event_or ());
+      op1 = e;
+    }
+
+  return op1;
+}
+
+event *
 parser::parse_event_expr ()
 {
-  return parse_event_or ();
+  return parse_event_restrict ();
 }
 
 // --- parsing toplevel declarations ---
