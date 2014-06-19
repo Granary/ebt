@@ -13,9 +13,12 @@
 #include <fstream>
 #include <string>
 
+extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+}
 
 using namespace std;
 
@@ -88,7 +91,8 @@ main (int argc, char * const argv [])
   else if (!script.has_contents)
     {
       script.script_path = string(argv[optind]);
-      script.script_name = script.script_path; // TODOXXX set script.script_name properly to *just* the filename
+      script.script_name = string(basename(argv[optind]));
+      // script.script_name = script.script_path;
     }
 
   // perform ast translation -- passes 0-2
