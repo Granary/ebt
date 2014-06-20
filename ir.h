@@ -17,6 +17,31 @@
 /* from parse.h */
 struct token;
 
+// --- type system ---
+
+struct sj_type {
+  sj_type(const std::string &type_name): type_name(type_name) {}
+  std::string type_name;
+  // TODOXXX equality comparisons, copy constructors, all that stuff
+};
+
+extern sj_type type_string;
+extern sj_type type_int;
+
+struct sj_array_type: public sj_type {
+  sj_array_type(const std::string &type_name): sj_type(type_name) {}
+  // TODOXXX
+};
+
+// XXX move out of the header
+inline sj_type
+type_array(const sj_type &base_type)
+{
+  // XXX: error if base_type is already an array
+  return sj_array_type(base_type.type_name);
+  // TODOXXX
+}
+
 // --- predicate expressions ---
 
 // An expression is one of the following:
@@ -78,61 +103,9 @@ struct compound_event: public event {
   std::vector<event *> subevents;
 };
 
+// === TODOXXX REWRITE BELOW
+
 // --- script declarations ---
-
-// SKETCH OF HOW EVENT RESOLUTION PROCEEDS
-// =======================================
-//
-// TODOXXX (!!!) also consider the "restrict" operation A :: B
-//
-// Some basic algebraic laws governing events:
-// - A and (B or C) = (A and B) or (A and C)
-// - (A or B) and C = (A and C) or (B and C)
-//
-// - A (expr) . ident = A . ident (expr)
-// - A (expr1) (expr2) = A . (expr1 && expr2)
-//
-// - A (expr1) and B (expr2) = (A and B) (expr1 && expr2)
-// - A (expr) and B = (A and B) (expr)
-// - A and B (expr) = (A and B) (expr)
-//
-// - (A or B) (expr) = A (expr) or B (expr)
-//
-// - (A and B) . ident = (A or B) . ident = (not B) . ident = *nonsense*
-//
-// (A simplification that results in *nonsense* means we signal an error.)
-//
-// Use these laws to factor events into the following hierarchy:
-//
-// compound_event("or")
-// -> conditional_event
-//    -> compound_event("and")
-//       -> named_event -> named event -> ...
-//
-// Then, in each compound_event("and"), figure out the one primitive
-// event/instrumentation mechanism to use, signal an error if multiple
-// incompatible mechanisms are being and'ed together. Likewise signal
-// an error if a compound_event("and") fails to include a simple event.
-//
-// (All other events resolve into context to import, conditions to
-// check -- these are collapsed into the conditional_event.
-//
-// XXX Be sure that they are correctly ordered relative to any
-// explicit conditions in the expression. The basic rule should be
-// that conditions -- both implicit and explicit -- are evaluated in
-// "left to right" and "inside to outside" order.)
-//
-// Once we've performed the simplification, converting the result to a
-// basic_event is simple. (XXX Of course, this is the conceptual-level
-// explanation; in practice, we may directly compute the basic_event
-// without bothering to do the refactoring on an algebraic level.)
-
-enum basic_probe_type {
-  EV_FCALL,   // -- XXX at entry point inside the function
-  EV_FRETURN, // -- XXX at return insn inside the function
-  EV_INSN,    // -- at every insn of every basic block
-  EV_MALLOC,  // -- XXX after return from MEV_MACCESS
-};
 
 struct condition {}; // TODOXXX
 
@@ -143,6 +116,25 @@ struct probe {
   handler *body;
 };
 
+// === TODOXXX REWRITE ABOVE ===
+
+// --- built-in events and context values ---
+
+struct sj_event {
+  // TODOXXX
+  void add_context(const std::string &path, const sj_type &type);
+};
+
+// --- probe representation ---
+
+enum basic_probe_type {
+  EV_FCALL,   // -- XXX at entry point inside the function
+  EV_FRETURN, // -- XXX at return insn inside the function
+  EV_INSN,    // -- at every insn of every basic block
+  EV_MALLOC,  // -- XXX after return from malloc() type function
+  EV_MACCESS, // -- XXX after each memory access
+};
+
 struct basic_probe {
   basic_probe_type mechanism;
   // TODOXXX something to indicate what context information we need to obtain
@@ -150,6 +142,8 @@ struct basic_probe {
   std::vector<condition *> conditions;
   handler *body;
 };
+
+// --- files and modules ---
 
 struct sj_file {
   sj_file ();
@@ -166,15 +160,20 @@ struct translator_output;
 
 struct sj_module {
 private:
-  std::vector<sj_file *> script_files;
+  static std::map<std::string, sj_event *> events;
 
+  std::vector<sj_file *> script_files;
   std::map<basic_probe_type, std::vector<basic_probe *> > basic_probes;
+
+  // Define a new event type:
+  void add_event (const std::string &path);
 
   // Add the event represented by event_expr to basic_probes:
   void resolve_events (event *event_expr);
   // XXX also take into account the handler code!
 
 public:
+  sj_module ();
 
   bool has_contents;
   std::string script_name; // short path or "<command line>"
@@ -182,8 +181,6 @@ public:
   std::string script_contents; // -e PROGRAM
 
   int last_pass;
-
-  sj_module() : last_pass(3) {}
 
   void compile();
   void emit_dr_client(translator_output &o) const;
