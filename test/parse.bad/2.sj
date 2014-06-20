@@ -1,0 +1,2 @@
+// can't sigil numbers and strings
+probe insn ($"foo" == $2) {}

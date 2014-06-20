@@ -350,6 +350,11 @@ lexer::scan()
 // event_expr ::= event_expr "or" event_expr
 // event_expr ::= event_expr "::" event_expr
 //
+// designator ::= IDENTIFIER
+// TODOXXX designator ::= designator "." IDENTIFIER
+// TODOXXX designator ::= designator "." NUMBER
+// TODOXXX designator ::= designator "[" expr "]"
+//
 // expr ::= ["$" | "@"] IDENTIFIER
 // expr ::= NUMBER
 // expr ::= STRING
@@ -592,18 +597,23 @@ parser::parse_basic_expr()
       return e;
     }
 
+  bool require_ident = false;
   basic_expr* e = new basic_expr;
   if (peek_op("$", t) || peek_op("@", t))
     {
       e->sigil = t; next();
+      require_ident = true;
     }
 
   t = peek();
+  if (require_ident && t->type != tok_ident)
+    throw_expect_error("identifier", t);
   // TODOXXX process this stuff better
   if (t->type == tok_num || t->type == tok_str || t->type == tok_ident)
     {
       e->tok = t;
       next ();
+      // TODOXXX permit identifier chaining
       return e;
     }
   else throw_expect_error("identifier, string, or number", t);

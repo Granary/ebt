@@ -8,3 +8,5 @@
 
 # BAD INPUT
 ./sj -p1 ./test/parse.bad/1.sj
+./sj -p1 ./test/parse.bad/2.sj
+./sj -p1 ./test/parse.bad/3.sj
