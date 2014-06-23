@@ -1039,6 +1039,8 @@ parser::parse_probe ()
   // XXX probe handler would be parsed here
   swallow_op("{");
   swallow_op("}");
+
+  return p;
 }
 
 sj_file *

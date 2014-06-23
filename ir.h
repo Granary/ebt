@@ -22,7 +22,7 @@ struct token;
 struct sj_type {
   sj_type(const std::string &type_name): type_name(type_name) {}
   std::string type_name;
-  // TODOXXX equality comparisons, copy constructors, all that stuff
+  // TODOXXX equality comparisons, copy constructors, printing, all that stuff
 };
 
 extern sj_type type_string;
@@ -51,30 +51,38 @@ type_array(const sj_type &base_type)
 
 struct expr {
   token *tok;
+  virtual void print (std::ostream &o) const = 0;
 };
+
+std::ostream& operator << (std::ostream &o, const expr &e);
 
 struct basic_expr: public expr {
   // TODOXXX more specific subtypes for value
   token *sigil; // must be NULL or tok_op: "$", "@'
 
   basic_expr() : sigil(NULL) {}
+
+  void print (std::ostream &o) const;
 };
 
 struct unary_expr: public expr {
   std::string op;
   expr *operand;
+  void print (std::ostream &o) const;
 };
 
 struct binary_expr: public expr {
   expr *left;
   std::string op;
   expr *right;
+  void print (std::ostream &o) const;
 };
 
 struct conditional_expr: public expr {
   expr *cond;
   expr *truevalue;
   expr *falsevalue;
+  void print (std::ostream &o) const;
 };
 
 // --- event hierarchy ---
@@ -84,23 +92,31 @@ struct conditional_expr: public expr {
 // - conditional_event : EVENT '(' EXPR ')'
 // - compound_event    : 'not' EVENT, EVENT 'and' EVENT, EVENT 'or' EVENT, EVENT '::' EVENT
 
+// TODOXXX printing support for all below
+
 struct event {
   token *tok;
+  virtual void print (std::ostream &o) const = 0;
 };
+
+std::ostream& operator << (std::ostream &o, const event &e);
 
 struct named_event: public event {
   std::string ident;
   event *subevent; // possibly NULL
+  void print (std::ostream &o) const;
 };
 
 struct conditional_event: public event {
   event *subevent;
   expr *condition;
+  void print (std::ostream &o) const;
 };
 
 struct compound_event: public event {
   std::string op;
   std::vector<event *> subevents;
+  void print (std::ostream &o) const;
 };
 
 // === TODOXXX REWRITE BELOW
@@ -114,12 +130,16 @@ struct handler {}; // TODOXXX
 struct probe {
   event *probe_point;
   handler *body;
+  void print (std::ostream &o) const; // TODOXXX
 };
+
+std::ostream& operator << (std::ostream &o, const probe &p);
 
 // === TODOXXX REWRITE ABOVE ===
 
 // --- built-in events and context values ---
 
+// TODOXXX rename this to something intelligible
 struct sj_event {
   // TODOXXX
   void add_context(const std::string &path, const sj_type &type);
@@ -141,6 +161,7 @@ struct basic_probe {
   // TODOXXX can multiple 'instances' of the same context info conflict?
   std::vector<condition *> conditions;
   handler *body;
+  // TODOXXX printing functionality
 };
 
 // --- files and modules ---
@@ -152,8 +173,10 @@ struct sj_file {
   std::string name;
 
   std::vector<probe *> probes;
+  void print(std::ostream &o) const; // TODOXXX
 };
 
+std::ostream& operator << (std::ostream &o, const sj_file &f);
 
 /* from util.h */
 struct translator_output;

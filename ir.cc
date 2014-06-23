@@ -26,6 +26,135 @@ using namespace std;
 sj_type type_string("string");
 sj_type type_int("foo");
 
+// --- pretty-print predicate expressions ---
+
+// TODOXXX add precedence a linebreaking feature of some kind?
+
+std::ostream&
+operator << (std::ostream &o, const expr &e)
+{
+  e.print(o);
+  return o;
+}
+
+void
+basic_expr::print (std::ostream &o) const
+{
+  if (sigil)
+    o << sigil->content;
+  o << tok->content;
+}
+
+void
+unary_expr::print (std::ostream &o) const
+{
+  o << op << " (";
+  operand->print(o);
+  o << ")";
+}
+
+void
+binary_expr::print (std::ostream &o) const
+{
+  o << "(";
+  left->print(o);
+  o << ") " << op << " (";
+  right->print(o);
+  o << ")";
+}
+
+void
+conditional_expr::print (std::ostream &o) const
+{
+  o << "(";
+  cond->print(o);
+  o << ") ? (";
+  truevalue->print(o);
+  o << ") : (";
+  falsevalue->print(o);
+  o << ")";
+}
+
+// --- pretty-print event expressions ---
+
+std::ostream&
+operator << (std::ostream &o, const event &e)
+{
+  e.print(o);
+  return o;
+}
+
+void
+named_event::print (std::ostream &o) const
+{
+  if (subevent) {
+    o << "(";
+    subevent->print(o);
+    o << ").";
+  }
+  o << ident;
+}
+
+void
+conditional_event::print (std::ostream &o) const
+{
+  o << "(";
+  subevent->print(o);
+  o << ") (";
+  condition->print(o);
+  o << ")";
+}
+
+void
+compound_event::print (std::ostream &o) const
+{
+  if (op == "not")
+    {
+      o << op << " ";
+      subevents[0]->print(o);
+      return;
+    }
+
+  o << "(";
+  subevents[0]->print(o);
+  for (unsigned i = 1; i < subevents.size(); i++) {
+    o << ") " << op << " (";
+    subevents[i]->print(o);
+  }
+  o << ")";
+}
+
+// --- pretty-print overall file ---
+
+std::ostream&
+operator << (std::ostream &o, const probe &p)
+{
+  p.print(o);
+  return o;
+}
+
+void
+probe::print (std::ostream &o) const
+{
+  // XXX also print body
+  o << "probe " << *probe_point << " {}";
+}
+
+std::ostream&
+operator << (std::ostream &o, const sj_file &f)
+{
+  f.print(o);
+  return o;
+}
+
+void
+sj_file::print (std::ostream &o) const
+{
+  for (unsigned i = 0; i < probes.size(); i++)
+    o << *(probes[i]) << endl;
+}
+
+
 // --- methods for sj_event ---
 
 void
@@ -90,7 +219,9 @@ sj_module::compile()
           return;
         }
 
-      script_files.push_back(parse(this, input));
+      sj_file *result = parse(this, input);
+      if (result == NULL) return; // XXX error handling
+      script_files.push_back(result);
     }
   else
     {
@@ -103,7 +234,16 @@ sj_module::compile()
           return;
         }
 
-      script_files.push_back(parse(this, input));
+      sj_file *result = parse(this, input);
+      if (result == NULL) return; // XXX error handling
+      script_files.push_back(result);
+    }
+
+  // print results of parsing pass
+  if (last_pass < 2)
+    {
+      for (unsigned i = 0; i < script_files.size(); i++)
+        cerr << *(script_files[i]);
     }
 
   // TODOXXX SKETCH OF HOW EVENT RESOLUTION PROCEEDS
