@@ -18,6 +18,7 @@
 #include "util.h"
 #include "ir.h"
 #include "parse.h"
+#include "emit.h"
 
 using namespace std;
 
@@ -176,8 +177,13 @@ operator << (std::ostream &o, const sj_file &f)
 void
 sj_file::print (std::ostream &o) const
 {
+#ifdef ONLY_BASIC_PROBES
+  for (unsigned i = 0; i < resolved_probes.size(); i++)
+    o << *(resolved_probes[i]) << endl;
+#else
   for (unsigned i = 0; i < probes.size(); i++)
     o << *(probes[i]) << endl;
+#endif
 }
 
 // --- methods for sj_event ---
@@ -245,7 +251,7 @@ sj_module::compile()
         }
 
       sj_file *result = parse(this, input);
-      if (result == NULL) return; // XXX error handling
+      if (result == NULL) { exit(1); } // TODOXXX error handling
       script_files.push_back(result);
     }
   else
@@ -260,7 +266,7 @@ sj_module::compile()
         }
 
       sj_file *result = parse(this, input);
-      if (result == NULL) return; // XXX error handling
+      if (result == NULL) { exit(1); } // TODOXXX error handling
       script_files.push_back(result);
     }
 
@@ -270,11 +276,11 @@ sj_module::compile()
       cerr << "RESULTING INITIAL PROBES" << endl;
       for (unsigned i = 0; i < script_files.size(); i++)
         cerr << *(script_files[i]);
-#ifndef ONLY_BASIC_PROBES
-      return; // XXX: when using basic probes, run through resolution anyways
-#endif
+      cerr << "===" << endl;
+      return;
     }
 
+#ifndef ONLY_BASIC_PROBES
   // TODOXXX SKETCH OF HOW EVENT RESOLUTION PROCEEDS
   // ===============================================
   //
@@ -322,61 +328,35 @@ sj_module::compile()
   // explanation; in practice, we may directly compute the basic_event
   // without bothering to do the refactoring on an algebraic level.)
 
-  /* TODOXXX (!!!) go through all script files and resolve_events() to build probe_map */
-  /* ... though for now this is incredibly simple to do ... */
-
-#ifdef ONLY_BASIC_PROBES
-  for (vector<sj_file *>::iterator it = script_files.begin();
-       it != script_files.end(); it++) {
-    for (vector<basic_probe *>::iterator jt = (*it)->probes.begin();
-         jt != (*it)->probes.end(); jt++) {
-      basic_probe *bp = *jt;
-      basic_probes[bp->mechanism].push_back(bp);
-    }
-  }
+  // TODOXXX
 #endif
-
-  if (last_pass < 3)
-    {
-      cerr << "===" << endl;
-      cerr << "RESULTING BASIC PROBES (by mechanism)" << endl;
-      for (map<basic_probe_type, vector<basic_probe *> >::iterator it = basic_probes.begin();
-           it != basic_probes.end(); it++)
-        {
-          for (vector<basic_probe *>::iterator jt = it->second.begin();
-               jt != it->second.end(); jt++)
-            {
-              (*jt)->print(cerr);
-              cerr << endl;
-            }
-          cerr << "---" << endl;
-        }
-    }
-
 }
 
-/* XXX no particularly fancy infrastructure for now */
 void
-sj_module::emit_dr_client(translator_output& o) const
+sj_module::prepare_client_template(client_template &t)
 {
-  o.newline() << "#include \"dr_api.h\"";
-  o.newline();
+  for (vector<sj_file *>::iterator it = script_files.begin();
+       it != script_files.end(); it++) {
+    for (vector<basic_probe *>::iterator jt = (*it)->resolved_probes.begin();
+         jt != (*it)->resolved_probes.end(); jt++) {
+      basic_probe *bp = *jt;
+      t.register_probe(bp);
+    }
+  }
+}
 
-  o.newline() << "static void event_exit(void);";
-  o.newline();
+void
+sj_module::emit_fake_client(translator_output& o)
+{
+  fake_client_template t(this);
+  prepare_client_template(t);
+  t.emit(o);
+}
 
-  o.newline() << "DR_EXPORT void";
-  o.newline() << "dr_init(client_id_t id)";
-  o.newline() << "{";
-    o.newline(1) << "/* empty client */";
-    o.newline() << "dr_register_exit_event(event_exit);";
-  o.newline(-1) << "}";
-  o.newline();
-
-  o.newline() << "static void";
-  o.newline() << "event_exit(void)";
-  o.newline() << "{";
-    o.newline(1) << "/* empty client */";
-  o.newline(-1) << "}";
-  o.newline();
+void
+sj_module::emit_dr_client(translator_output& o)
+{
+  dr_client_template t(this);
+  prepare_client_template(t);
+  t.emit(o);
 }

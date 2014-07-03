@@ -1,6 +1,6 @@
 CC = g++ -g
 
-SJ_SOURCES = main.cc util.h util.cc ir.h ir.cc parse.h parse.cc
+SJ_SOURCES = main.cc util.h util.cc ir.h ir.cc parse.h parse.cc emit.h emit.cc
 
 sj: $(SJ_SOURCES)
 	$(CC) -o $@ $(SJ_SOURCES)

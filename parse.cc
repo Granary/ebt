@@ -1101,7 +1101,7 @@ parser::parse()
           if (peek_op("probe", t))
             {
 #ifdef ONLY_BASIC_PROBES
-              f->probes.push_back(parse_basic_probe());
+              f->resolved_probes.push_back(parse_basic_probe());
 #else
               f->probes.push_back(parse_probe());
 #endif

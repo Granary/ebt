@@ -177,11 +177,8 @@ struct sj_file {
 
   std::string name;
 
-#ifdef ONLY_BASIC_PROBES
-  std::vector<basic_probe *> probes;
-#else
   std::vector<probe *> probes;
-#endif
+  std::vector<basic_probe *> resolved_probes;
   void print(std::ostream &o) const; // TODOXXX
 };
 
@@ -190,12 +187,14 @@ std::ostream& operator << (std::ostream &o, const sj_file &f);
 /* from util.h */
 struct translator_output;
 
+/* from emit.h */
+struct client_template;
+
 struct sj_module {
 private:
   static std::map<std::string, sj_event *> events;
 
   std::vector<sj_file *> script_files;
-  std::map<basic_probe_type, std::vector<basic_probe *> > basic_probes;
 
   // Define a new event type:
   void add_event (const std::string &path);
@@ -203,6 +202,8 @@ private:
   // Add the event represented by event_expr to basic_probes:
   void resolve_events (event *event_expr);
   // XXX also take into account the handler code!
+
+  void prepare_client_template (client_template &t);
 
 public:
   sj_module ();
@@ -215,7 +216,8 @@ public:
   int last_pass;
 
   void compile();
-  void emit_dr_client(translator_output &o) const;
+  void emit_fake_client(translator_output &o);
+  void emit_dr_client(translator_output &o);
 };
 
 #endif // SJ_IR_H
