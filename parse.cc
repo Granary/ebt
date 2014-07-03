@@ -129,6 +129,8 @@ lexer::lexer(sj_module* m, sj_file *f, istream& input)
       operators.insert("(");
       operators.insert(")");
 
+      operators.insert(","); // XXX temporarily used for condition lists
+
       operators.insert(".");
       operators.insert("::");
 
@@ -447,6 +449,9 @@ public:
   event *parse_event_restrict ();
   event *parse_event_expr ();
 
+#ifdef ONLY_BASIC_PROBES
+  basic_probe *parse_basic_probe ();
+#endif
   probe *parse_probe ();
 };
 
@@ -1028,6 +1033,48 @@ parser::parse_event_expr ()
 
 // --- parsing toplevel declarations ---
 
+#ifdef ONLY_BASIC_PROBES
+basic_probe *
+parser::parse_basic_probe ()
+{
+  swallow_op("probe");
+
+  basic_probe *bp = new basic_probe;
+
+  token *t = peek();
+  if (t->type != tok_ident)
+    throw_expect_error("probe type: fcall, freturn, insn", t); // TODOXXX malloc, maccess
+
+  if (t->content == "fcall")
+    bp->mechanism = EV_FCALL;
+  else if (t->content == "freturn")
+    bp->mechanism = EV_FRETURN;
+  else if (t->content == "insn")
+    bp->mechanism = EV_INSN;
+  else
+    throw_expect_error("probe type: fcall, freturn, insn", t); // TODOXXX malloc, maccess
+  swallow();
+
+  // parse conditions
+  if (peek_op("(", t))
+    {
+      do
+        {
+          swallow();
+          bp->conditions.push_back(parse_expr());
+        }
+      while (peek_op(",", t));
+      swallow_op(")");
+    }
+
+  bp->body = new handler; // TODOXXX
+  swallow_op("{");
+  swallow_op("}");
+
+  return bp;
+}
+#endif
+
 probe *
 parser::parse_probe ()
 {
@@ -1053,7 +1100,11 @@ parser::parse()
           token *t;
           if (peek_op("probe", t))
             {
+#ifdef ONLY_BASIC_PROBES
+              f->probes.push_back(parse_basic_probe());
+#else
               f->probes.push_back(parse_probe());
+#endif
             }
           else if (finished())
             break;

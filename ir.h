@@ -17,6 +17,8 @@
 /* from parse.h */
 struct token;
 
+#define ONLY_BASIC_PROBES
+
 // --- type system ---
 
 struct sj_type {
@@ -130,7 +132,7 @@ struct handler {}; // TODOXXX
 struct probe {
   event *probe_point;
   handler *body;
-  void print (std::ostream &o) const; // TODOXXX
+  void print (std::ostream &o) const;
 };
 
 std::ostream& operator << (std::ostream &o, const probe &p);
@@ -159,10 +161,13 @@ struct basic_probe {
   basic_probe_type mechanism;
   // TODOXXX something to indicate what context information we need to obtain
   // TODOXXX can multiple 'instances' of the same context info conflict?
-  std::vector<condition *> conditions;
+  std::vector<expr *> conditions; // TODOXXX need separate condition * type
   handler *body;
   // TODOXXX printing functionality
+  void print (std::ostream &o) const;
 };
+
+std::ostream& operator << (std::ostream &o, const basic_probe &p);
 
 // --- files and modules ---
 
@@ -172,7 +177,11 @@ struct sj_file {
 
   std::string name;
 
+#ifdef ONLY_BASIC_PROBES
+  std::vector<basic_probe *> probes;
+#else
   std::vector<probe *> probes;
+#endif
   void print(std::ostream &o) const; // TODOXXX
 };
 

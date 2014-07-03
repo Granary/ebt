@@ -141,6 +141,32 @@ probe::print (std::ostream &o) const
 }
 
 std::ostream&
+operator << (std::ostream &o, const basic_probe &p)
+{
+  p.print(o);
+  return o;
+}
+
+void
+basic_probe::print (std::ostream &o) const
+{
+  o << "probe ";
+  switch (mechanism) {
+  case EV_FCALL: o << "EV_FCALL"; break;
+  case EV_FRETURN: o << "EV_FRETURN"; break;
+  case EV_INSN: o << "EV_INSN"; break;
+  case EV_MALLOC: o << "EV_MALLOC"; break;
+  case EV_MACCESS: o << "EV_MACCESS"; break;
+  }
+  o << " ";
+  if (!conditions.empty()) o << "(";
+  if (!conditions.empty()) o << *(conditions[0]);
+  for (unsigned i = 1; i < conditions.size(); i++)
+    o << ", " << *(conditions[i]);
+  if (!conditions.empty()) o << ")";
+}
+
+std::ostream&
 operator << (std::ostream &o, const sj_file &f)
 {
   f.print(o);
@@ -153,7 +179,6 @@ sj_file::print (std::ostream &o) const
   for (unsigned i = 0; i < probes.size(); i++)
     o << *(probes[i]) << endl;
 }
-
 
 // --- methods for sj_event ---
 
@@ -294,6 +319,7 @@ sj_module::compile()
   // without bothering to do the refactoring on an algebraic level.)
 
   /* TODOXXX (!!!) go through all script files and resolve_events() to build probe_map */
+  /* ... though for now this is incredibly simple to do ... */
 
 }
 
