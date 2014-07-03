@@ -265,10 +265,14 @@ sj_module::compile()
     }
 
   // print results of parsing pass
-  if (last_pass < 2)
+  if (last_pass < 3)
     {
+      cerr << "RESULTING INITIAL PROBES" << endl;
       for (unsigned i = 0; i < script_files.size(); i++)
         cerr << *(script_files[i]);
+#ifndef ONLY_BASIC_PROBES
+      return; // XXX: when using basic probes, run through resolution anyways
+#endif
     }
 
   // TODOXXX SKETCH OF HOW EVENT RESOLUTION PROCEEDS
@@ -320,6 +324,34 @@ sj_module::compile()
 
   /* TODOXXX (!!!) go through all script files and resolve_events() to build probe_map */
   /* ... though for now this is incredibly simple to do ... */
+
+#ifdef ONLY_BASIC_PROBES
+  for (vector<sj_file *>::iterator it = script_files.begin();
+       it != script_files.end(); it++) {
+    for (vector<basic_probe *>::iterator jt = (*it)->probes.begin();
+         jt != (*it)->probes.end(); jt++) {
+      basic_probe *bp = *jt;
+      basic_probes[bp->mechanism].push_back(bp);
+    }
+  }
+#endif
+
+  if (last_pass < 3)
+    {
+      cerr << "===" << endl;
+      cerr << "RESULTING BASIC PROBES (by mechanism)" << endl;
+      for (map<basic_probe_type, vector<basic_probe *> >::iterator it = basic_probes.begin();
+           it != basic_probes.end(); it++)
+        {
+          for (vector<basic_probe *>::iterator jt = it->second.begin();
+               jt != it->second.end(); jt++)
+            {
+              (*jt)->print(cerr);
+              cerr << endl;
+            }
+          cerr << "---" << endl;
+        }
+    }
 
 }
 
