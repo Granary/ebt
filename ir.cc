@@ -151,19 +151,22 @@ operator << (std::ostream &o, const basic_probe &p)
 void
 basic_probe::print (std::ostream &o) const
 {
-  o << "probe ";
+  o << "probe{" << body->id << "} ";
   switch (mechanism) {
+  case EV_NONE: o << "EV_NONE"; break;
   case EV_FCALL: o << "EV_FCALL"; break;
   case EV_FRETURN: o << "EV_FRETURN"; break;
   case EV_INSN: o << "EV_INSN"; break;
   case EV_MALLOC: o << "EV_MALLOC"; break;
   case EV_MACCESS: o << "EV_MACCESS"; break;
+  case EV_END: o << "EV_END"; break;
+  case EV_BEGIN: o << "EV_BEGIN"; break;
   }
   o << " ";
   if (!conditions.empty()) o << "(";
-  if (!conditions.empty()) o << *(conditions[0]);
+  if (!conditions.empty()) o << *(conditions[0]->content);
   for (unsigned i = 1; i < conditions.size(); i++)
-    o << ", " << *(conditions[i]);
+    o << ", " << *(conditions[i]->content);
   if (!conditions.empty()) o << ")";
 }
 
@@ -172,6 +175,13 @@ operator << (std::ostream &o, const sj_file &f)
 {
   f.print(o);
   return o;
+}
+
+void
+global_data::print (std::ostream &o) const
+{
+  o << "global{" << id << "}";
+  // TODOXXX additional info on the global
 }
 
 void
@@ -204,30 +214,31 @@ sj_file::sj_file(const string& name) : name(name) {}
 map<string, sj_event *> sj_module::events;
 
 sj_module::sj_module()
-  : last_pass(3)
+  : handler_ticket(0), global_ticket(0), last_pass(3)
 {
-  if (events.empty())
-    {
-      add_event("insn");
-      events["insn"]->add_context("$opcode", type_string);
-      events["insn"]->add_context("@op", type_array(type_int)); // TODOXXX add array syntax
+  // TODOXXX populate context hierarchy using something like this:
+  // if (events.empty())
+  //   {
+  //     add_event("insn");
+  //     events["insn"]->add_context("$opcode", type_string);
+  //     events["insn"]->add_context("@op", type_array(type_int)); // TODOXXX add array syntax
 
-      add_event("function");
-      events["function"]->add_context("$name", type_string);
-      events["function"]->add_context("$module", type_string);
-      // TODOXXX support for combined name/module notation as in SystemTap
-      // TODOXXX support for function variables
+  //     add_event("function");
+  //     events["function"]->add_context("$name", type_string);
+  //     events["function"]->add_context("$module", type_string);
+  //     // TODOXXX support for combined name/module notation as in SystemTap
+  //     // TODOXXX support for function variables
 
-      add_event("function.entry");
+  //     add_event("function.entry");
 
-      add_event("function.exit");
+  //     add_event("function.exit");
 
-      add_event("malloc");
-      events["malloc"]->add_context("@addr", type_int);
+  //     add_event("malloc");
+  //     events["malloc"]->add_context("@addr", type_int);
 
-      add_event("access");
-      events["access"]->add_context("@addr", type_int);
-    }
+  //     add_event("access");
+  //     events["access"]->add_context("@addr", type_int);
+  //   }
 }
 
 void

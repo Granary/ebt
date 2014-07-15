@@ -25,9 +25,13 @@ class translator_output {
 public:
   translator_output(std::ostream &file);
 
-  std::ostream& newline (int indent = 0);
+  std::ostream& newline (int indent_amount = 0);
+  void indent (int amount);
 
   std::ostream& line();
 };
+
+std::string c_stringify(const std::string &unescaped);
+std::string c_comment(const std::string &unescaped);
 
 #endif // SJ_UTIL_H

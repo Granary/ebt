@@ -25,7 +25,11 @@ using namespace std;
 
 ////////////////////////////////////
 // TODOXXX Language Features to Add
-// - statements, functions, global variables
+// - basic statements
+// - functions
+// - global variables
+// - control flow constructs
+// - basic event resolution language
 // - dynamic probe instantiation (e.g. for watchpoints)
 // - a more complex access syntax for static/dynamic data
 // - associative arrays, statistical aggregates
@@ -95,6 +99,10 @@ public:
   static set<string> keywords;
   static set<string> operators;
 
+  // Used to extract a subrange of the source code (e.g. for diagnostics):
+  unsigned get_pos();
+  string source(unsigned start, unsigned end);
+
   token *scan();
 
   // Clear unused last_tok and next_tok; skips any lookahead tokens:
@@ -163,6 +171,18 @@ lexer::lexer(sj_module* m, sj_file *f, istream& input)
     }
 }
 
+
+unsigned
+lexer::get_pos()
+{
+  return cursor;
+}
+
+string
+lexer::source(unsigned start, unsigned end)
+{
+  return input_contents.substr(start, end);
+}
 
 int
 lexer::input_peek(unsigned offset)
@@ -1037,6 +1057,8 @@ parser::parse_event_expr ()
 basic_probe *
 parser::parse_basic_probe ()
 {
+  unsigned probe_start = input.get_pos();
+
   swallow_op("probe");
 
   basic_probe *bp = new basic_probe;
@@ -1051,8 +1073,12 @@ parser::parse_basic_probe ()
     bp->mechanism = EV_FRETURN;
   else if (t->content == "insn")
     bp->mechanism = EV_INSN;
+  else if (t->content == "begin")
+    bp->mechanism = EV_BEGIN;
+  else if (t->content == "end")
+    bp->mechanism = EV_END;
   else
-    throw_expect_error("probe type: fcall, freturn, insn", t); // TODOXXX malloc, maccess
+    throw_expect_error("probe type: begin, end, insn", t); // TODOXXX fcall, freturn, malloc, maccess
   swallow();
 
   // parse conditions
@@ -1061,15 +1087,23 @@ parser::parse_basic_probe ()
       do
         {
           swallow();
-          bp->conditions.push_back(parse_expr());
+          expr *e = parse_expr();
+          condition *c = new condition;
+          c->id = bp->get_ticket();
+          c->content = e;
+          bp->conditions.push_back(c);
         }
       while (peek_op(",", t));
       swallow_op(")");
     }
 
   bp->body = new handler; // TODOXXX
+  bp->body->id = m->get_handler_ticket();
+
   swallow_op("{");
   swallow_op("}");
+
+  bp->body->orig_source = input.source(probe_start, input.get_pos()); // TODOXXX only works well for oneliner probes -- need to collapse multiline condition chains
 
   return bp;
 }

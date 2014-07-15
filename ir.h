@@ -94,8 +94,6 @@ struct conditional_expr: public expr {
 // - conditional_event : EVENT '(' EXPR ')'
 // - compound_event    : 'not' EVENT, EVENT 'and' EVENT, EVENT 'or' EVENT, EVENT '::' EVENT
 
-// TODOXXX printing support for all below
-
 struct event {
   token *tok;
   virtual void print (std::ostream &o) const = 0;
@@ -121,13 +119,21 @@ struct compound_event: public event {
   void print (std::ostream &o) const;
 };
 
-// === TODOXXX REWRITE BELOW
-
 // --- script declarations ---
 
-struct condition {}; // TODOXXX
+struct condition {
+  // TODOXXX something to indicate what context information we need to obtain
+  // TODOXXX can multiple 'instances' of the same context info conflict?
+  unsigned id; // used in code generator
+  expr *content;
+};
 
-struct handler {}; // TODOXXX
+struct handler {
+  unsigned id;
+  std::string orig_source; // XXX explanatory string shown in some contexts
+  const std::string title() const { return "probe" + orig_source; } // TODOXXX probe should be included in orig_source
+  // TODOXXX represent handler content
+};
 
 struct probe {
   event *probe_point;
@@ -137,11 +143,14 @@ struct probe {
 
 std::ostream& operator << (std::ostream &o, const probe &p);
 
-// === TODOXXX REWRITE ABOVE ===
+struct global_data {
+  unsigned id; // TODOXXX set id when adding to sj_file
+  void print (std::ostream &o) const;
+};
 
 // --- built-in events and context values ---
 
-// TODOXXX rename this to something intelligible
+// TODOXXX rename this to something intelligible?
 struct sj_event {
   // TODOXXX
   void add_context(const std::string &path, const sj_type &type);
@@ -150,20 +159,29 @@ struct sj_event {
 // --- probe representation ---
 
 enum basic_probe_type {
+  EV_NONE,    // TODOXXX special case to be used in event resolution
+
   EV_FCALL,   // -- XXX at entry point inside the function
   EV_FRETURN, // -- XXX at return insn inside the function
   EV_INSN,    // -- at every insn of every basic block
   EV_MALLOC,  // -- XXX after return from malloc() type function
   EV_MACCESS, // -- XXX after each memory access
+
+  EV_BEGIN,   // -- at the beginning of script execution
+  EV_END,     // -- just before the script terminates
 };
 
 struct basic_probe {
+private:
+  unsigned ticket;
+public:
+  basic_probe() : ticket(0) {}
+  unsigned get_ticket() { return ticket++; }
+
   basic_probe_type mechanism;
-  // TODOXXX something to indicate what context information we need to obtain
-  // TODOXXX can multiple 'instances' of the same context info conflict?
-  std::vector<expr *> conditions; // TODOXXX need separate condition * type
+  std::vector<condition *> conditions;
   handler *body;
-  // TODOXXX printing functionality
+
   void print (std::ostream &o) const;
 };
 
@@ -196,6 +214,10 @@ private:
 
   std::vector<sj_file *> script_files;
 
+  // Used to distinguish top-level script elements with a unique numerical id:
+  unsigned handler_ticket;
+  unsigned global_ticket;
+
   // Define a new event type:
   void add_event (const std::string &path);
 
@@ -207,6 +229,9 @@ private:
 
 public:
   sj_module ();
+
+  unsigned get_handler_ticket() { return handler_ticket++; }
+  unsigned get_global_ticket() { return global_ticket++; }
 
   bool has_contents;
   std::string script_name; // short path or "<command line>"
