@@ -1065,7 +1065,7 @@ parser::parse_basic_probe ()
 
   token *t = peek();
   if (t->type != tok_ident)
-    throw_expect_error("probe type: fcall, freturn, insn", t); // TODOXXX malloc, maccess
+    throw_expect_error("probe type: begin, end, insn", t); // TODOXXX fcall, freturn, malloc, maccess
 
   if (t->content == "fcall")
     bp->mechanism = EV_FCALL;
