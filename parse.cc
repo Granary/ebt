@@ -1067,16 +1067,16 @@ parser::parse_basic_probe ()
   if (t->type != tok_ident)
     throw_expect_error("probe type: begin, end, insn", t); // TODOXXX fcall, freturn, malloc, maccess
 
-  if (t->content == "fcall")
-    bp->mechanism = EV_FCALL;
-  else if (t->content == "freturn")
-    bp->mechanism = EV_FRETURN;
-  else if (t->content == "insn")
+  if (t->content == "insn")
     bp->mechanism = EV_INSN;
   else if (t->content == "begin")
     bp->mechanism = EV_BEGIN;
   else if (t->content == "end")
     bp->mechanism = EV_END;
+  // else if (t->content == "fcall")
+  //   bp->mechanism = EV_FCALL;
+  // else if (t->content == "freturn")
+  //   bp->mechanism = EV_FRETURN;
   else
     throw_expect_error("probe type: begin, end, insn", t); // TODOXXX fcall, freturn, malloc, maccess
   swallow();
