@@ -24,7 +24,7 @@ struct translator_output;
 
 typedef std::map<basic_probe_type, std::vector<basic_probe *> > probe_map;
 
-// --- generic C "unparser" ---
+// --- generic C "unparser", to be used for both DR and Granary tasks ---
 
 // TODOXXX start stupidly simple with the context mapping
 typedef std::map<std::string, std::string> sj_context;
@@ -32,7 +32,7 @@ typedef std::map<std::string, std::string> sj_context;
 class c_unparser {
  public:
   c_unparser();
-  void emit_expr(translator_output& o, const expr *e, const sj_context *ctx) const;
+  void emit_expr(translator_output& o, expr *e, sj_context *ctx) const;
 };
 
 // --- client templates ---

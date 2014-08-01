@@ -196,6 +196,61 @@ sj_file::print (std::ostream &o) const
 #endif
 }
 
+// --- methods for the visitor pattern ---
+
+void
+basic_expr::visit (visitor *u)
+{
+  u->visit_basic_expr(this);
+}
+
+void
+unary_expr::visit (visitor *u)
+{
+  u->visit_unary_expr(this);
+}
+
+void
+binary_expr::visit (visitor *u)
+{
+  u->visit_binary_expr(this);
+}
+
+void
+conditional_expr::visit (visitor *u)
+{
+  u->visit_conditional_expr(this);
+}
+
+// --- methods for traversing_visitor ---
+
+void
+traversing_visitor::visit_basic_expr (basic_expr *s)
+{
+  // nothing to do here
+}
+
+void
+traversing_visitor::visit_unary_expr (unary_expr *s)
+{
+  s->operand->visit(this);
+}
+
+void
+traversing_visitor::visit_binary_expr (binary_expr *s)
+{
+  s->left->visit(this);
+  s->right->visit(this);
+}
+
+void
+traversing_visitor::visit_conditional_expr (conditional_expr *s)
+{
+  s->cond->visit(this);
+  s->truevalue->visit(this);
+  s->falsevalue->visit(this);
+}
+
 // --- methods for sj_event ---
 
 void

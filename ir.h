@@ -51,9 +51,11 @@ type_array(const sj_type &base_type)
 // - unary_expr  : OPERATOR EXPR
 // - binary_expr : EXPR OPERATOR EXPR
 
+struct visitor;
 struct expr {
   token *tok;
   virtual void print (std::ostream &o) const = 0;
+  virtual void visit (visitor* u) = 0;
 };
 
 std::ostream& operator << (std::ostream &o, const expr &e);
@@ -65,12 +67,14 @@ struct basic_expr: public expr {
   basic_expr() : sigil(NULL) {}
 
   void print (std::ostream &o) const;
+  void visit (visitor *u);
 };
 
 struct unary_expr: public expr {
   std::string op;
   expr *operand;
   void print (std::ostream &o) const;
+  void visit (visitor *u);
 };
 
 struct binary_expr: public expr {
@@ -78,6 +82,7 @@ struct binary_expr: public expr {
   std::string op;
   expr *right;
   void print (std::ostream &o) const;
+  void visit (visitor *u);
 };
 
 struct conditional_expr: public expr {
@@ -85,6 +90,7 @@ struct conditional_expr: public expr {
   expr *truevalue;
   expr *falsevalue;
   void print (std::ostream &o) const;
+  void visit (visitor *u);
 };
 
 // --- event hierarchy ---
@@ -118,6 +124,25 @@ struct compound_event: public event {
   std::vector<event *> subevents;
   void print (std::ostream &o) const;
 };
+
+// --- visitors ---
+
+struct visitor {
+  virtual void visit_basic_expr (basic_expr *s) = 0;
+  virtual void visit_unary_expr (unary_expr *s) = 0;
+  virtual void visit_binary_expr (binary_expr *s) = 0;
+  virtual void visit_conditional_expr (conditional_expr *s) = 0;
+};
+
+// basic traversing visitor -- iterates the leaves of an expression
+struct traversing_visitor : public visitor {
+  void visit_basic_expr (basic_expr *s);
+  void visit_unary_expr (unary_expr *s);
+  void visit_binary_expr (binary_expr *s);
+  void visit_conditional_expr (conditional_expr *s);
+};
+
+// TODOXXX variable collecting visitor for the context computations
 
 // --- script declarations ---
 

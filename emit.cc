@@ -17,6 +17,7 @@
 using namespace std;
 
 #include "emit.h"
+#include "parse.h"
 #include "ir.h"
 #include "util.h"
 
@@ -65,17 +66,70 @@ fake_client_template::emit(translator_output& o)
 
 // === general functions for emitting C code ===
 
+/* a basic traversing visitor to emit the expression */
+class unparsing_visitor : public visitor {
+  translator_output *o;
+  sj_context *ctx;
+
+public:
+  unparsing_visitor(translator_output *o, sj_context *ctx) : o(o), ctx(ctx) {}
+  void visit_basic_expr (basic_expr *s);
+  void visit_unary_expr (unary_expr *s);
+  void visit_binary_expr (binary_expr *s);
+  void visit_conditional_expr (conditional_expr *s);
+};
+
+void
+unparsing_visitor::visit_basic_expr (basic_expr *s)
+{
+  // TODOXXX error handling, escaping intricacies
+  if (s->tok->type == tok_ident)
+    o->line() << "(" << (*ctx)[s->tok->content] << ")";
+  else if (s->tok->type == tok_str)
+    o->line() << "\"" << s->tok->content << "\"";
+  else if (s->tok->type == tok_num)
+    o->line() << s->tok->content;
+}
+
+void
+unparsing_visitor::visit_unary_expr (unary_expr *s)
+{
+  o->line() << s->op << "(";
+  s->operand->visit(this);
+  o->line() << ")";
+}
+
+void
+unparsing_visitor::visit_binary_expr (binary_expr *s)
+{
+  o->line() << "(";
+  s->left->visit(this);
+  o->line() << ")" << s->op << "(";
+  s->right->visit(this);
+  o->line() << ")";
+}
+
+void
+unparsing_visitor::visit_conditional_expr (conditional_expr *s)
+{
+  o->line() << "(";
+  s->cond->visit(this);
+  o->line() << ")" << "?" << "(";
+  s->truevalue->visit(this);
+  o->line() << ")" << ":" << "(";
+  s->falsevalue->visit(this);
+  o->line() << ")";
+}
+
 /* we create instances of the c_unparser to make it possible for each
    client_template to (down the line) configure some of its own options */
 c_unparser::c_unparser() {}
 
 void
-c_unparser::emit_expr(translator_output &o, const expr *e, const sj_context *ctx) const
+c_unparser::emit_expr(translator_output &o, expr *e, sj_context *ctx) const
 {
-  // TODOXXX use visitor pattern to traverse the expr; for now do this dumb thing:
-  o.line() << "<TODOXXX emit expression (";
-  e->print(o.line());
-  o.line() << ")>";
+  unparsing_visitor v(&o, ctx);
+  e->visit(&v);
 }
 
 // === DynamoRIO backend ===
@@ -87,8 +141,10 @@ dr_client_template::dr_client_template(sj_module *module)
 {
   if (ctxvars.empty())
     {
-      // TODOXXX quick-and-dirty populate with ctxvars
-      // obviously need a more sophisticated namespacing thing
+      // TODOXXX quick-and-dirty populate this with ctxvars
+      // TODOXXX obviously we need a more sophisticated namespacing thing
+      ctxvars["opcode"] = "TODOXXX_get_opcode";
+      ctxvars["fname"] = "TODOXXX_get_fname";
     }
 }
 
