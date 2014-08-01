@@ -18,4 +18,4 @@ clean:
 count:
 	@echo "PROJECT SOURCE CODE SUMMARY"
 	@echo "==========================="
-	@wc *.cc *.h Makefile README.md test/*.sh
+	@wc *.cc *.h Makefile README.md test/*.sh runtime/*.h
