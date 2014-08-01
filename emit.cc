@@ -366,7 +366,7 @@ dr_client_template::emit_exit_callback(translator_output &o)
 
       o.newline() << "dr_fprintf(STDERR, \"%5d :: "
                   << c_stringify(h->title())
-                  << "\\n\", probecounter(id));";
+                  << "\\n\", " << probecounter(id) << ");";
       // XXX <-- do we need to lock a mutex here?
     }
 #endif

@@ -53,6 +53,7 @@ c_stringify(const std::string &unescaped)
       char c = unescaped[i];
 
       /* escape questionable stuff: */
+      if (c == '\n') { result.push_back('\\'); result.push_back('n'); continue; } // TODOXXX may want to omit newline altogether
       if (c == '\"' || c == '\\') result.push_back('\\');
 
       result.push_back(c);
