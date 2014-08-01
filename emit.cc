@@ -143,7 +143,7 @@ dr_client_template::dr_client_template(sj_module *module)
     {
       // TODOXXX quick-and-dirty populate this with ctxvars
       // TODOXXX obviously we need a more sophisticated namespacing thing
-      ctxvars["opcode"] = "TODOXXX_get_opcode";
+      ctxvars["opcode"] = "opcode_str(opcode)"; // TODOXXX runtime
       ctxvars["fname"] = "TODOXXX_get_fname";
     }
 }
@@ -376,11 +376,13 @@ void
 dr_client_template::emit_bb_callback(translator_output &o)
 {
   o.newline() << "instr_t *instr, *next_instr;";
+  o.newline() << "int opcode";
   o.newline();
 
   o.newline() << "for (instr = instrlist_first(bb); instr != NULL; instr = next_instr) {";
   o.newline(1) << "/* handle per-instruction events */";
   o.newline() << "next_instr = instr_get_next(instr);";
+  o.newline() << "opcode = instr_get_opcode(instr);"; // TODOXXX enable conditionally
 
   /* handlers for EV_INSN */
   emit_condition_chain(o, basic_probes[EV_INSN]);
@@ -512,6 +514,7 @@ void
 dr_client_template::emit(translator_output& o)
 {
   o.newline() << "#include \"dr_api.h\"";
+  o.newline() << "#include \"runtime/opcode.h\""; // TODOXXX
   o.newline();
 
   /* TODOXXX context data structure types for handlers */
