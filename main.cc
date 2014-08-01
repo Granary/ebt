@@ -35,9 +35,11 @@ usage(const char *prog_name)
           "\n"
           "Options and arguments:\n"
           "  -e SCRIPT   : one-liner program\n"
-          "  -g FILENAME : output script to file, instead of stdout\n"
+          "  -o          : stop after pass-3 and show the resulting client source\n"
+          "  -g FILENAME : output client source to file, instead of stdout\n"
           "  -f          : (testing purposes only) output 'fake' client template\n"
-          "  -p PASS     : stop after pass (0:lex, 1:parse, 2:resolve, 3:emit)\n",
+          "  -p PASS     : stop after pass (0:lex, 1:parse, 2:resolve, 3:emit, 4:run)\n",
+          // TODOXXX options for the target program
           prog_name, prog_name);
   exit(1);
 }
@@ -48,6 +50,9 @@ main (int argc, char * const argv [])
   sj_module script;
   script.has_contents = false;
 
+  // whether to compile+run the client, or just generate source
+  bool run_client = true;
+
   bool has_outfile = false;
   char *outfile_path = NULL;
 
@@ -55,12 +60,14 @@ main (int argc, char * const argv [])
 
   /* parse options */
   char c;
-  while ((c = getopt(argc, argv, "g:e:p:f")) != -1)
+  while ((c = getopt(argc, argv, "g:e:p:fo")) != -1)
     {
       switch (c)
         {
         case 'f':
           emit_fake_client = true;
+          run_client = false;
+          script.last_pass = 3;
           break;
         case 'e':
           script.has_contents = true;
@@ -70,13 +77,17 @@ main (int argc, char * const argv [])
         case 'g':
           has_outfile = true;
           outfile_path = optarg;
+        case 'o':
+          // TODOXXX should be mutually exclusive with -p
+          run_client = false;
+          script.last_pass = 3;
           break;
         case 'p':
           char *num_endptr;
           script.last_pass = (int)strtoul(optarg, &num_endptr, 10);
-          if (*num_endptr != '\0' || script.last_pass < 0 || script.last_pass > 3)
+          if (*num_endptr != '\0' || script.last_pass < 0 || script.last_pass > 4)
             {
-              cerr << "Invalid pass number (should be 0-3)." << endl;
+              cerr << "Invalid pass number (should be 0-4)." << endl;
               // XXX print usage?
               exit(1);
             }
@@ -84,6 +95,13 @@ main (int argc, char * const argv [])
         default:
           usage(argv[0]);
         }
+    }
+
+  // TODOXXX UGLY harmonize run_client and -p option
+  if (!run_client && script.last_pass == 4)
+    {
+      script.last_pass = 3;
+      cerr << "Will not run the resulting client.";
     }
 
   if (script.has_contents && optind < argc)
@@ -109,11 +127,17 @@ main (int argc, char * const argv [])
   if (script.last_pass < 3)
     exit(0);
 
+  // determine where to emit the client source
   ofstream outfile;
   if (has_outfile)
     {
       outfile.open(outfile_path);
       if (!outfile.is_open()) { perror("cannot open output file"); exit(1); }
+    }
+  else if (run_client)
+    {
+      // TODOXXX create temporary directory
+      // TODOXXX open outfile to temporary file in directory
     }
 
   translator_output o(has_outfile ? outfile : cout);
@@ -125,4 +149,16 @@ main (int argc, char * const argv [])
     script.emit_dr_client(o);
 
   if (has_outfile) outfile.close();
+
+  // run the final module -- pass 4
+  if (script.last_pass < 4)
+    exit(0);
+
+  cerr << "RUNNING THE CLIENT IS NOT YET SUPPORTED" << endl;
+
+  // TODOXXX emit cmakefile for client
+  // TODOXXX run cmake command
+  // TODOXXX run make command
+  // TODOXXX run dynamorio on the target program
+  // TODOXXX clean up: delete temporary directory
 }

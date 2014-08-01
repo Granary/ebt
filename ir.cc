@@ -270,6 +270,7 @@ map<string, sj_event *> sj_module::events;
 
 sj_module::sj_module()
   : handler_ticket(0), global_ticket(0), last_pass(3)
+    // TODOXXX bump last_pass to 4 when run_client stuff is empty
 {
   // TODOXXX populate context hierarchy using something like this:
   // if (events.empty())
