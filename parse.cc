@@ -1057,6 +1057,7 @@ parser::parse_event_expr ()
 basic_probe *
 parser::parse_basic_probe ()
 {
+  // TODOXXX this is still very buggy...
   unsigned probe_start = input.get_pos();
 
   swallow_op("probe");
@@ -1100,10 +1101,10 @@ parser::parse_basic_probe ()
   bp->body = new handler; // TODOXXX
   bp->body->id = m->get_handler_ticket();
 
+  bp->body->orig_source = input.source(probe_start, input.get_pos()); // TODOXXX only works well for oneliner probes -- need to collapse multiline condition chains
+
   swallow_op("{");
   swallow_op("}");
-
-  bp->body->orig_source = input.source(probe_start, input.get_pos()); // TODOXXX only works well for oneliner probes -- need to collapse multiline condition chains
 
   return bp;
 }
