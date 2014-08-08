@@ -18,6 +18,14 @@ extern "C" {
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
+#include <fcntl.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+
+#include <openssl/md5.h>
 }
 
 using namespace std;
@@ -25,6 +33,40 @@ using namespace std;
 #include "util.h"
 #include "ir.h"
 #include "emit.h"
+
+unsigned char hash_result[MD5_DIGEST_LENGTH];
+
+string
+md5hash(const string& path, bool oneliner)
+{
+  if (!oneliner)
+    {
+      int fd = open(path.c_str(), O_RDONLY);
+      if (fd < 0) { perror("md5hash"); exit(-1); }
+
+      struct stat statbuf;
+      if (fstat(fd, &statbuf) < 0) { perror("md5hash"); exit(-1); }
+
+      char *file_buffer = (char *)mmap(0, statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
+      MD5((unsigned char*) file_buffer, statbuf.st_size, hash_result);
+
+      munmap(file_buffer, statbuf.st_size);
+    }
+  else
+    {
+      MD5((unsigned char*) path.c_str(), path.length(), hash_result);
+    }
+
+  string result("");
+  // use six hex digits as our hash
+  for (unsigned i = 0; i < 3 && i < MD5_DIGEST_LENGTH; i++)
+    {
+      char hex[3]; sprintf(hex, "%02x", hash_result[i]);
+      result.push_back(hex[0]); result.push_back(hex[1]);
+    }
+  return result;
+}
 
 static void
 usage(const char *prog_name)
@@ -37,6 +79,7 @@ usage(const char *prog_name)
           "  -e SCRIPT   : one-liner program\n"
           "  -o          : stop after pass-3 and show the resulting client source\n"
           "  -g FILENAME : output client source to file, instead of stdout\n"
+          "  -t PATH     : create build folder in PATH (defaults to /tmp)\n"
           "  -f          : (testing purposes only) output 'fake' client template\n"
           "  -p PASS     : stop after pass (0:lex, 1:parse, 2:resolve, 3:emit, 4:run)\n",
           // TODOXXX options for the target program
@@ -50,17 +93,20 @@ main (int argc, char * const argv [])
   sj_module script;
   script.has_contents = false;
 
-  // whether to compile+run the client, or just generate source
+  // whether to compile+run the client, or just generate source:
   bool run_client = true;
 
+  // where to create a build folder:
+  string tmp_prefix = "/tmp"; // TODOXXX customizable
+
   bool has_outfile = false;
-  char *outfile_path = NULL;
+  string outfile_path;
 
   bool emit_fake_client = false;
 
   /* parse options */
   char c;
-  while ((c = getopt(argc, argv, "g:e:p:fo")) != -1)
+  while ((c = getopt(argc, argv, "g:e:p:fot:")) != -1)
     {
       switch (c)
         {
@@ -74,9 +120,12 @@ main (int argc, char * const argv [])
           script.script_contents = string(optarg);
           script.script_name = "<command line>";
           break;
+        case 't':
+          tmp_prefix = string(optarg);
+          break;
         case 'g':
           has_outfile = true;
-          outfile_path = optarg;
+          outfile_path = string(optarg);
         case 'o':
           // TODOXXX should be mutually exclusive with -p
           run_client = false;
@@ -128,16 +177,25 @@ main (int argc, char * const argv [])
     exit(0);
 
   // determine where to emit the client source
+  string tmp_path;
+  if (!has_outfile && run_client)
+    {
+      if (script.has_contents)
+        tmp_path = tmp_prefix + "/sj_" + md5hash(script.script_contents, true);
+      else
+        tmp_path = tmp_prefix + "/sj_" + md5hash(script.script_path, false);
+      mkdir(tmp_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+      cerr << "created temporary directory " << tmp_path << endl;
+
+      outfile_path = tmp_path + "/script_output.c";
+      has_outfile = true;
+    }
+
   ofstream outfile;
   if (has_outfile)
     {
-      outfile.open(outfile_path);
+      outfile.open(outfile_path.c_str());
       if (!outfile.is_open()) { perror("cannot open output file"); exit(1); }
-    }
-  else if (run_client)
-    {
-      // TODOXXX create temporary directory
-      // TODOXXX open outfile to temporary file in directory
     }
 
   translator_output o(has_outfile ? outfile : cout);

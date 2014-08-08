@@ -1,4 +1,5 @@
-CC = g++ -g
+# need some Autoconf nonsense in the longer term
+CC = g++ -g -lssl /usr/lib64/libcrypto.so.10
 
 SJ_SOURCES = main.cc util.h util.cc ir.h ir.cc parse.h parse.cc emit.h emit.cc
 
