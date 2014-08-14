@@ -143,7 +143,7 @@ dr_client_template::dr_client_template(sj_module *module)
     {
       // TODOXXX quick-and-dirty populate this with ctxvars
       // TODOXXX obviously we need a more sophisticated namespacing thing
-      ctxvars["opcode"] = "opcode_str(opcode)"; // TODOXXX runtime
+      ctxvars["opcode"] = "opcode_string(opcode)"; // TODOXXX runtime
       ctxvars["fname"] = "TODOXXX_get_fname";
     }
 }
@@ -299,6 +299,8 @@ dr_client_template::emit_condition_chain(translator_output &o,
       o.newline();
       o.newline() << next_label << ":";
     }
+
+  o.newline() << ";";
 }
 
 void
@@ -320,13 +322,6 @@ dr_client_template::emit_handler(translator_output &o, handler *h)
 void
 dr_client_template::emit_begin_callback(translator_output &o)
 {
-  /* handlers for EV_BEGIN */
-  emit_condition_chain(o, basic_probes[EV_BEGIN], true);
-
-  /* register callbacks */
-  if (have(EV_END)) o.newline() << "dr_register_exit_event(event_exit);";
-  if (have(EV_INSN)) o.newline() << "dr_register_bb_event(bb_event);";
-
   /* initialize global data */
 #ifdef PROBE_COUNTERS
   for (vector<handler *>::const_iterator it = all_handlers.begin();
@@ -348,6 +343,17 @@ dr_client_template::emit_begin_callback(translator_output &o)
       /* TODOXXX initialize global data content */
       o.newline() << "static void *" << global_mutex(id) << ";";
     }
+
+  /* handlers for EV_BEGIN */
+  emit_condition_chain(o, basic_probes[EV_BEGIN], true);
+
+  /* register callbacks */
+#ifdef PROBE_COUNTERS
+  o.newline() << "dr_register_exit_event(event_exit);";
+#else
+  if (have(EV_END)) o.newline() << "dr_register_exit_event(event_exit);";
+#endif
+  if (have(EV_INSN)) o.newline() << "dr_register_bb_event(bb_event);";
 }
 
 void
@@ -376,7 +382,7 @@ void
 dr_client_template::emit_bb_callback(translator_output &o)
 {
   o.newline() << "instr_t *instr, *next_instr;";
-  o.newline() << "int opcode";
+  o.newline() << "int opcode;";
   o.newline();
 
   o.newline() << "for (instr = instrlist_first(bb); instr != NULL; instr = next_instr) {";
@@ -413,8 +419,8 @@ dr_client_template::emit_function_decls(translator_output &o, bool forward)
       handler *h = *it;
       unsigned id = h->id;
 
-      o.newline() << "static void";
-      o.newline() << handlerfn(id) << "()"; // TODOXXX context struct
+      o.newline() << "static void ";
+      (forward ? o.line() : o.newline()) << handlerfn(id) << "()"; // TODOXXX context struct
       if (forward)
         o.line() << ";";
       else
@@ -430,8 +436,8 @@ dr_client_template::emit_function_decls(translator_output &o, bool forward)
     }
 
 #ifdef PROBE_COUNTERS
-  o.newline() << "static void";
-  o.newline() << "event_exit(void)";
+  o.newline() << "static void ";
+  (forward ? o.line() : o.newline()) << "event_exit(void)";
   if (forward)
     o.line() << ";";
   else
@@ -447,8 +453,8 @@ dr_client_template::emit_function_decls(translator_output &o, bool forward)
 #else
   if (have(EV_END))
     {
-      o.newline() << "static void";
-      o.newline() << "event_exit(void)";
+      o.newline() << "static void ";
+      (forward ? o.line() : o.newline()) << "event_exit(void)";
     }
   if (have(EV_END) && forward)
     o.line() << ";";
@@ -467,7 +473,7 @@ dr_client_template::emit_function_decls(translator_output &o, bool forward)
   if (have(EV_INSN))
     {
       o.newline() << "static dr_emit_flags_t";
-      o.newline() << "bb_event(void *drcontext, void *tag, instlist_t *bb, "
+      o.newline() << "bb_event(void *drcontext, void *tag, instrlist_t *bb, "
                   << "bool for_trace, bool translating)";
     }
   if (have(EV_INSN) && forward)
