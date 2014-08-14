@@ -22,6 +22,7 @@ extern "C" {
 #include <fcntl.h>
 
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 
@@ -34,8 +35,15 @@ using namespace std;
 #include "ir.h"
 #include "emit.h"
 
+// TODOXXX separate 'verbose' option (for the build process output)
+
+// --- paraphernalia for dealing with the system ---
+
+#define STANDARD_PERMISSIONS (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
+
 unsigned char hash_result[MD5_DIGEST_LENGTH];
 
+// TODOXXX should also bake a timestamp into the hash, or use a caching mode
 string
 md5hash(const string& path, bool oneliner)
 {
@@ -68,12 +76,70 @@ md5hash(const string& path, bool oneliner)
   return result;
 }
 
+void
+system_command(vector<string> &args, string path = "")
+{
+  /* Set up command line: */
+
+  string cmd(args[0]);
+  for (unsigned i = 1; i < args.size(); i++) cmd += " " + args[i];
+
+  char ** argv = (char **) malloc(sizeof(char *) * 4);
+  argv[0] = (char *) "/bin/sh";
+  argv[1] = (char *) "-c";
+  argv[2] = (char *) malloc(sizeof(char) * (cmd.size() + 1));
+  strncpy(argv[2], cmd.c_str(), cmd.size() + 1);
+  argv[3] = NULL;
+
+  /* Set current working directory: */
+  if (path != "")
+    {
+      // cerr << "CHANGE DIRECTORY: " << path << endl; // TODOXXX
+      chdir(path.c_str());
+    }
+
+  cerr << endl;
+  cerr << "---" << endl;
+  cerr << "sj: " << cmd << endl;
+
+  /* We need to wait for the command to complete. */
+  int status;
+  pid_t pid = fork();
+  if (pid < 0)
+    {
+      string errmsg = "fork system command '" + cmd + "'";
+      perror(errmsg.c_str());
+      exit(1);
+    }
+  else if (pid == 0)
+    {
+      // XXX should probably configure the environment
+      int rc = execvp("/bin/sh", argv);
+      string errmsg = "exec system command '" + cmd + "'";
+      perror(errmsg.c_str());
+      exit(1);
+    }
+  else
+    waitpid(pid, &status, 0);
+
+  if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+    {
+      cerr << "system command failed: " + cmd << endl;
+      exit(1);
+    }
+
+  free(argv[2]);
+  free(argv);
+}
+
+// --- command line parser and utility ---
+
 static void
 usage(const char *prog_name)
 {
   fprintf(stderr,
-          "Usage: %s [options] FILENAME\n"
-          "   or: %s [options] -e SCRIPT\n"
+          "Usage: %s [options] FILENAME [[--] target program to analyze]\n"
+          "   or: %s [options] -e SCRIPT [[--] target program to analyze]\n"
           "\n"
           "Options and arguments:\n"
           "  -e SCRIPT   : one-liner program\n"
@@ -82,7 +148,7 @@ usage(const char *prog_name)
           "  -t PATH     : create build folder in PATH (defaults to /tmp)\n"
           "  -f          : (testing purposes only) output 'fake' client template\n"
           "  -p PASS     : stop after pass (0:lex, 1:parse, 2:resolve, 3:emit, 4:run)\n",
-          // TODOXXX options for the target program
+          // TODOXXX options for launching the target program
           prog_name, prog_name);
   exit(1);
 }
@@ -106,6 +172,7 @@ main (int argc, char * const argv [])
 
   /* parse options */
   char c;
+  // XXX want to switch to getopt_long
   while ((c = getopt(argc, argv, "g:e:p:fot:")) != -1)
     {
       switch (c)
@@ -153,21 +220,30 @@ main (int argc, char * const argv [])
       cerr << "Will not run the resulting client.";
     }
 
-  if (script.has_contents && optind < argc)
+  // The first non-option filename is generally the script path.
+  if (!script.has_contents)
     {
-      /* spurious non-option arguments exist */
-      usage(argv[0]);
-    }
-  else if (!script.has_contents && optind != argc-1)
-    {
-      usage(argv[0]);
-    }
-  else if (!script.has_contents)
-    {
+      if (optind >= argc) /* no script to run */
+        usage(argv[0]);
       script.script_path = string(argv[optind]);
       script.script_name = string(basename(argv[optind]));
       // script.script_name = script.script_path;
+      optind++;
     }
+
+  // The remaining arguments give the command line of the target program:
+  if (!run_client && optind < argc) /* spurious non-option arguments exist */
+    usage(argv[0]);
+
+  vector<string> target_command;
+  while (optind < argc)
+    {
+      target_command.push_back(string(argv[optind]));
+      optind++;
+    }
+
+  if (run_client && target_command.empty()) /* no target program to run */
+    usage(argv[0]);
 
   // perform ast translation -- passes 0-2
   script.compile();
@@ -184,8 +260,8 @@ main (int argc, char * const argv [])
         tmp_path = tmp_prefix + "/sj_" + md5hash(script.script_contents, true);
       else
         tmp_path = tmp_prefix + "/sj_" + md5hash(script.script_path, false);
-      mkdir(tmp_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-      cerr << "created temporary directory " << tmp_path << endl;
+      mkdir(tmp_path.c_str(), STANDARD_PERMISSIONS);
+      cerr << "sj: creating temporary directory " << tmp_path << endl;
 
       outfile_path = tmp_path + "/script_output.c";
       has_outfile = true;
@@ -208,15 +284,80 @@ main (int argc, char * const argv [])
 
   if (has_outfile) outfile.close();
 
+  if (has_outfile) cerr << "sj: generated client " << outfile_path << endl;
+
   // run the final module -- pass 4
   if (script.last_pass < 4)
     exit(0);
 
-  cerr << "RUNNING THE CLIENT IS NOT YET SUPPORTED" << endl;
+  // First save the current working directory:
+  char *cwd = get_current_dir_name();
+  string orig_path(cwd);
+  free(cwd);
 
-  // TODOXXX emit cmakefile for client
-  // TODOXXX run cmake command
-  // TODOXXX run make command
-  // TODOXXX run dynamorio on the target program
+  // How to Compile and Run the DynamoRIO Client
+  //
+  // (1) Create script_output.c (done above).
+  // (2) Emit CMakeLists.txt
+  string cmakefile_path = tmp_path + "/CMakeLists.txt";
+  ofstream cmakefile;
+  cmakefile.open(cmakefile_path.c_str());
+  if (!cmakefile.is_open())
+    {
+      perror("cannot open CmakeLists.txt for output");
+      exit(1);
+    }
+
+  // XXX users need to make sure SJ_HOME is set
+  char *sj_home_c = getenv("SJ_HOME"); string sj_home(sj_home_c);
+
+  translator_output co(cmakefile);
+  co.line() << "# generated by sj version " << SJ_VERSION_STRING << "\n";
+
+  // XXX name the sj_client after the script??
+  co.newline() << "set(CMAKE_C_FLAGS \"-I" + sj_home + "\")";
+  co.newline();
+  co.newline() << "add_library(sj_client SHARED script_output.c)";
+  co.newline() << "find_package(DynamoRIO)";
+  co.newline() << "if (NOT DynamoRIO_FOUND)";
+  co.newline() << "  message(FATAL_ERROR \"DynamoRIO package required to build\")";
+  co.newline() << "endif(NOT DynamoRIO_FOUND)";
+  co.newline() << "configure_DynamoRIO_client(sj_client)";
+
+  cmakefile.close();
+  cerr << "sj: generated " << cmakefile_path << endl;
+  // TODOXXX extra verbosity: show cmakefile contents
+
+  // (3) Create directory build/
+  string build_path = tmp_path + "/build";
+  mkdir(build_path.c_str(), STANDARD_PERMISSIONS);
+
+  // (4) Run CMake command
+  vector<string> cmake_command;
+  cmake_command.push_back("cmake");
+  // XXX users need to make sure DYNAMORIO_HOME is set
+  char *dr_home_c = getenv("DYNAMORIO_HOME"); string dr_home(dr_home_c);
+  cmake_command.push_back("-DDynamoRIO_DIR=" + dr_home + "/cmake");
+  cmake_command.push_back("..");
+  system_command(cmake_command, build_path);
+
+  // (5) Run Make command
+  vector<string> make_command;
+  make_command.push_back("make");
+  system_command(make_command, build_path);
+
+  // (6) Run DynamoRIO on the target program
+  vector<string> dr_command;
+  dr_command.push_back("drrun");
+  dr_command.push_back("-root");
+  dr_command.push_back(dr_home);
+  dr_command.push_back("-c");
+  dr_command.push_back(build_path + "/libsj_client.so");
+  dr_command.push_back("--");
+  dr_command.insert(dr_command.end(), target_command.begin(), target_command.end());
+  // TODOXXX assemble command line for the target program
+  system_command(dr_command, orig_path);
+
   // TODOXXX clean up: delete temporary directory
+  // TODOXXX clean up: restore old working directory (before running DR?)
 }
