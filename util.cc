@@ -1,16 +1,13 @@
 // misc utilities
 // Copyright (C) 2014 Serguei Makarov
+// Copyright (C) 2005-2013 Red Hat Inc.
+// Copyright (C) 2005-2008 Intel Corporation.
+// Copyright (C) 2010 Novell Corporation.
 //
-// This file is part of SJ, an experimental event-based
-// instrumentation language employing DBT systems DynamoRIO and
-// Granary as its backend, and inspired by SystemTap. SJ is currently
-// internal-use code written as part of Serguei Makarov's 2014 USRA at
-// UofT, not for distribution.
-//
-// This file directly incorporates code from translator-output.cxx
-// from Systemtap. Please be sure to either remove this before
-// releasing the project, or to license the project under GPLv2 or
-// later.
+// This file is part of SJ, and is free software. You can
+// redistribute it and/or modify it under the terms of the GNU General
+// Public License (GPL); either version 2, or (at your option) any
+// later version.
 
 #include <iostream>
 

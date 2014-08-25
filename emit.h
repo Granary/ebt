@@ -1,11 +1,10 @@
 // backend generation
 // Copyright (C) 2014 Serguei Makarov
 //
-// This file is part of SJ, an experimental event-based
-// instrumentation language employing DBT systems DynamoRIO and
-// Granary as its backend, and inspired by SystemTap. SJ is currently
-// internal-use code written as part of Serguei Makarov's 2014 USRA at
-// UofT, not for distribution.
+// This file is part of SJ, and is free software. You can
+// redistribute it and/or modify it under the terms of the GNU General
+// Public License (GPL); either version 2, or (at your option) any
+// later version.
 
 #ifndef SJ_EMIT_H
 #define SJ_EMIT_H
