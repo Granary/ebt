@@ -93,8 +93,7 @@ system_command(vector<string> &args, string path = "")
   /* Set current working directory: */
   if (path != "")
     {
-      // cerr << "CHANGE DIRECTORY: " << path << endl; // TODOXXX
-      chdir(path.c_str());
+      chdir(path.c_str()); // XXX is this really the cleanest way?
     }
 
   cerr << endl;
@@ -162,7 +161,7 @@ main (int argc, char * const argv [])
   bool run_client = true;
 
   // where to create a build folder:
-  string tmp_prefix = "/tmp"; // TODOXXX customizable
+  string tmp_prefix = "/tmp";
 
   bool has_outfile = false;
   string outfile_path;
@@ -218,6 +217,8 @@ main (int argc, char * const argv [])
       script.last_pass = 3;
       cerr << "Will not run the resulting client.";
     }
+  if (script.last_pass < 4)
+    run_client = false;
 
   // The first non-option filename is generally the script path.
   if (!script.has_contents)
