@@ -18,6 +18,8 @@ extern "C" {
 #include <unistd.h>
 #include <string.h>
 
+#include <getopt.h>
+
 #include <fcntl.h>
 
 #include <sys/types.h>
@@ -132,6 +134,12 @@ system_command(vector<string> &args, string path = "")
 
 // --- command line parser and utility ---
 
+static struct option long_options[] = {
+  {"fake", no_argument, 0, 'f' },
+  {"show-source", no_argument, 0, 'o' },
+  {0, 0, 0, 0}
+};
+
 static void
 usage(const char *prog_name)
 {
@@ -140,12 +148,12 @@ usage(const char *prog_name)
           "   or: %s [options] -e SCRIPT [[--] target program to analyze]\n"
           "\n"
           "Options and arguments:\n"
-          "  -e SCRIPT   : one-liner program\n"
-          "  -o          : stop after pass-3 and show the resulting client source\n"
-          "  -g FILENAME : output client source to file, instead of stdout\n"
-          "  -t PATH     : create build folder in PATH (defaults to /tmp)\n"
-          "  -f          : (testing purposes only) output 'fake' client template\n"
-          "  -p PASS     : stop after pass (0:lex, 1:parse, 2:resolve, 3:emit, 4:run)\n",
+          "  -e SCRIPT        : one-liner program\n"
+          "  -o --show-source : stop after pass-3 and show resulting client source\n"
+          "  -g FILENAME      : output client source to file, instead of stdout\n"
+          "  -t PATH          : create build folder in PATH (defaults to /tmp)\n"
+          "  -f --fake        : (testing purposes only) output 'fake' client template\n"
+          "  -p PASS          : stop after pass (0:lex, 1:parse, 2:resolve, 3:emit, 4:run)\n",
           // TODOXXX options for launching the target program
           prog_name, prog_name);
   exit(1);
@@ -170,8 +178,7 @@ main (int argc, char * const argv [])
 
   /* parse options */
   char c;
-  // XXX want to switch to getopt_long
-  while ((c = getopt(argc, argv, "g:e:p:fot:")) != -1)
+  while ((c = getopt_long(argc, argv, "g:e:p:fot:", long_options, NULL)) != -1)
     {
       switch (c)
         {
