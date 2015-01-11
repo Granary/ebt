@@ -1,7 +1,7 @@
 EBT -- **E**vent-directed dynamic **B**inary **T**ranslation
 ============================================================
 
-The EBT project was started by Serhei Makarov over the summer of 2014 as part of a USRA internship with UofT's computer systems group.
+The EBT project was started by Serhei Makarov over the summer of 2014 as part of a USRA internship with UofT's computer systems group. As of Winter 2015, the project is undergoing a [rewrite](TODO.md); stay tuned for more information.
 
 The eventual aim is to build a high-level event-based language that generates client modules for a Dynamic Binary Translation framework with a minimal amount of hassle, both for passively observing a target program and for altering its execution with additional safety checks (as done, e.g. by Valgrind's `memcheck` utility). A high-level language for this purpose has a lot of potential, as writing a DBT client manually requires handling the target program code at a very low level, whereas using a pre-existing DBT client often involves giving up customizability.
 
