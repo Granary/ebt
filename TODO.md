@@ -1,6 +1,7 @@
 # Task List for Winter 2015 Rewrite
 
 | Patch | Estimated Date | Completed |
+|-------|----------------|-----------|
 | sample DR client collection | January 15 | |
 | event-expression language :: and | January 16 | |
 | event-expression language :: or | January 18 | |
