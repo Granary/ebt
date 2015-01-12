@@ -24,3 +24,15 @@
 | Gather performance results for SRC paper | | |
 | Implement proper autoconf for the language | week of February 15 | |
 | Publish initial release for SRC paper & notify people on mailing list | early March 2015 | |
+
+# Outline of Tasks for Granary+ Support
+
+If my schedule of DynamoRIO-based work (outlined in the previous section) proceeds well, I will try to work on Granary+ quickly enough to include it in the corresponding upcoming papers.
+
+| Patch | Estimated Date | Completed |
+|-------|----------------|-----------|
+| sample Granary client collection | | |
+| (decoupling work for EBT library / implement more stuff directly in EBT) | | |
+| basic Granary/C++ backend and event mechanism implementation | | |
+| mapping of high-level EBT events to event mechanisms | | |
+| look into additional functionality that uses Granary+ | | |
