@@ -1,0 +1,4 @@
+// hello.ebt :: print "Hello" and "Goodbye" as the target starts and ends
+
+probe begin { printf("Hello, World!\n") }
+probe end { printf("Goodbye, World!\n") }

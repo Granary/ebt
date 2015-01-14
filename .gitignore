@@ -1,4 +1,5 @@
 private-*
+dr-demo/build/
 
 # Object files
 *.o
