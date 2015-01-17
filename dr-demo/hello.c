@@ -2,7 +2,8 @@
 
 #include "dr_api.h"
 
-static void event_exit(void); // forward decl
+// forward decls
+static void event_exit(void);
 
 DR_EXPORT void
 dr_init(client_id_t id)
