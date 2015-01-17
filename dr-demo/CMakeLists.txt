@@ -5,6 +5,7 @@
 
 add_library(empty SHARED empty.c)
 add_library(hello SHARED hello.c)
+add_library(insn_div SHARED insn_div.c)
 
 find_package(DynamoRIO)
 if (NOT DynamoRIO_FOUND)
@@ -13,3 +14,4 @@ endif (NOT DynamoRIO_FOUND)
 
 configure_DynamoRIO_client(empty)
 configure_DynamoRIO_client(hello)
+configure_DynamoRIO_client(insn_div)

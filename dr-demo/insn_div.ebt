@@ -1,0 +1,16 @@
+// insn_div.ebt :: count the number of DIV instructions executed by the target
+
+global div_count
+global div_p2_count
+
+probe insn($opcode == "div") {
+	div_count++
+	if ((@op.2 & (@op.2 - 1)) != 0) // -- divisor is a power of two
+		div_p2_count++
+}
+
+probe end {
+	printf("======\n")
+	printf("TOTALS\n")
+	printf(" %d div | %d div_p2\n")
+}
