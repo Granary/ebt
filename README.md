@@ -1,5 +1,5 @@
-EBT -- **E**vent-directed dynamic **B**inary **T**ranslation
-============================================================
+EBT -- (E)vent-directed dynamic (B)inary (T)ranslation
+======================================================
 
 The EBT project was started by Serhei Makarov over the summer of 2014 as part of a USRA internship with UofT's computer systems group. As of Winter 2015, the project is undergoing a [rewrite](TODO.md); stay tuned for more information.
 

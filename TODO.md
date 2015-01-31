@@ -12,8 +12,8 @@
 | basic C expressions and globals | | |
 | basic control flow | | |
 | basic hardcoded printf() | | |
-| finish comprehensive renaming of project | | |
-| Fix title formatting in README.md | | |
+| finish comprehensive renaming of project | | Jan 31 |
+| Fix title formatting in README.md | | Jan 31 |
 | PIAZZA / docs - setup and language tutorial | week of January 25 | |
 | PIAZZA / docs - update poster & bibliography | | |
 | Implement arrays | | |
