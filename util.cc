@@ -4,7 +4,7 @@
 // Copyright (C) 2005-2008 Intel Corporation.
 // Copyright (C) 2010 Novell Corporation.
 //
-// This file is part of SJ, and is free software. You can
+// This file is part of EBT, and is free software. You can
 // redistribute it and/or modify it under the terms of the GNU General
 // Public License (GPL); either version 2, or (at your option) any
 // later version.

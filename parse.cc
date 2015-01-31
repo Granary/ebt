@@ -1,7 +1,7 @@
 // language parser
 // Copyright (C) 2014 Serguei Makarov
 //
-// This file is part of SJ, and is free software. You can
+// This file is part of EBT, and is free software. You can
 // redistribute it and/or modify it under the terms of the GNU General
 // Public License (GPL); either version 2, or (at your option) any
 // later version.
@@ -79,8 +79,8 @@ struct parse_error: public runtime_error
 class lexer
 {
 private:
-  sj_module *m;
-  sj_file *f;
+  ebt_module *m;
+  ebt_file *f;
 
   string input_contents;
   unsigned input_size;
@@ -93,7 +93,7 @@ private:
   int input_peek(unsigned offset = 0);
 
 public:
-  lexer(sj_module* m, sj_file *f, istream& i);
+  lexer(ebt_module* m, ebt_file *f, istream& i);
 
   static set<string> keywords;
   static set<string> operators;
@@ -113,7 +113,7 @@ set<string> lexer::keywords;
 set<string> lexer::operators;
 
 
-lexer::lexer(sj_module* m, sj_file *f, istream& input)
+lexer::lexer(ebt_module* m, ebt_file *f, istream& input)
   : m(m), f(f), cursor(0), curr_line(1), curr_col(1)
 {
   getline(input, input_contents, '\0');
@@ -362,7 +362,7 @@ lexer::scan()
 // script ::= declaration script
 // script ::=
 //
-// declaration ::= "probe" event_expr "{" "}"
+// declaration ::= "probe" event_expr "{" statements "}"
 // 
 // event_expr ::= [event_expr "."] IDENTIFIER
 // event_expr ::= event_expr "(" expr ")"
@@ -383,12 +383,17 @@ lexer::scan()
 // expr ::= UNARY expr
 // expr ::= expr BINARY expr
 // expr ::= expr "?" expr ":" expr
+//
+// statements ::= statement statements
+// statements ::=
+//
+// statement ::= 
 
 class parser
 {
 private:
-  sj_module *m;
-  sj_file *f;
+  ebt_module *m;
+  ebt_file *f;
   lexer input;
 
   void print_error(const parse_error& pe);
@@ -408,13 +413,13 @@ private:
   void swallow_op(const string& op);
 
 public:
-  parser(sj_module* m, const string& name, istream& i)
-    : m(m), f(new sj_file(name)), input(lexer(m, f, i)),
+  parser(ebt_module* m, const string& name, istream& i)
+    : m(m), f(new ebt_file(name)), input(lexer(m, f, i)),
       last_tok(NULL), next_tok(NULL) {}
 
   void test_lexer();
 
-  sj_file *parse();
+  ebt_file *parse();
 
   // Handy-dandy precedence table, for expressions:
   // 0        - IDENTIFIER, LITERAL
@@ -474,16 +479,16 @@ public:
   probe *parse_probe ();
 };
 
-sj_file *
-parse (sj_module* m, istream& i, const string source_name)
+ebt_file *
+parse (ebt_module* m, istream& i, const string source_name)
 {
   const std::string& name = source_name == "" ? m->script_name : source_name;
   parser p (m, name, i);
   return p.parse();
 }
 
-sj_file *
-parse (sj_module* m, const string& n, const string source_name)
+ebt_file *
+parse (ebt_module* m, const string& n, const string source_name)
 {
   const std::string& name = source_name == "" ? m->script_name : source_name;
   istringstream i (n);
@@ -493,7 +498,7 @@ parse (sj_module* m, const string& n, const string source_name)
 
 
 void
-test_lexer (sj_module* m, istream& i, const string source_name)
+test_lexer (ebt_module* m, istream& i, const string source_name)
 {
   const std::string& name = source_name == "" ? m->script_name : source_name;
   parser p (m, name, i);
@@ -501,7 +506,7 @@ test_lexer (sj_module* m, istream& i, const string source_name)
 }
 
 void
-test_lexer (sj_module* m, const string& n, const string source_name)
+test_lexer (ebt_module* m, const string& n, const string source_name)
 {
   const std::string& name = source_name == "" ? m->script_name : source_name;
   istringstream i (n);
@@ -1124,7 +1129,7 @@ parser::parse_probe ()
   return p;
 }
 
-sj_file *
+ebt_file *
 parser::parse()
 {
   try

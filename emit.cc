@@ -1,7 +1,7 @@
 // backend generation
 // Copyright (C) 2014 Serguei Makarov
 //
-// This file is part of SJ, and is free software. You can
+// This file is part of EBT, and is free software. You can
 // redistribute it and/or modify it under the terms of the GNU General
 // Public License (GPL); either version 2, or (at your option) any
 // later version.
@@ -68,10 +68,10 @@ fake_client_template::emit(translator_output& o)
 /* a basic traversing visitor to emit the expression */
 class unparsing_visitor : public visitor {
   translator_output *o;
-  sj_context *ctx;
+  ebt_context *ctx;
 
 public:
-  unparsing_visitor(translator_output *o, sj_context *ctx) : o(o), ctx(ctx) {}
+  unparsing_visitor(translator_output *o, ebt_context *ctx) : o(o), ctx(ctx) {}
   void visit_basic_expr (basic_expr *s);
   void visit_unary_expr (unary_expr *s);
   void visit_binary_expr (binary_expr *s);
@@ -125,7 +125,7 @@ unparsing_visitor::visit_conditional_expr (conditional_expr *s)
 c_unparser::c_unparser() {}
 
 void
-c_unparser::emit_expr(translator_output &o, expr *e, sj_context *ctx) const
+c_unparser::emit_expr(translator_output &o, expr *e, ebt_context *ctx) const
 {
   unparsing_visitor v(&o, ctx);
   e->visit(&v);
@@ -133,9 +133,16 @@ c_unparser::emit_expr(translator_output &o, expr *e, sj_context *ctx) const
 
 // === DynamoRIO backend ===
 
-sj_context dr_client_template::ctxvars;
+// TODOXXX class var_collector : public traversing visitor {
+//   set<string> required_contextvars; // TODOXXX
+//
+// public:
+//   void visit_basic_expr (basic_expr *s);
+// };
 
-dr_client_template::dr_client_template(sj_module *module)
+ebt_context dr_client_template::ctxvars;
+
+dr_client_template::dr_client_template(ebt_module *module)
   : client_template(module)
 {
   if (ctxvars.empty())
@@ -246,7 +253,7 @@ dr_client_template::condvar(unsigned hid, int cid) const
 string
 dr_client_template::handlerfn(unsigned id) const
 {
-  return "sj_handler_" + tostring(id);
+  return "ebt_handler_" + tostring(id);
 }
 
 // --- client template ---

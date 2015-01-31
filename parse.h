@@ -1,24 +1,24 @@
 // language parser
 // Copyright (C) 2014 Serguei Makarov
 //
-// This file is part of SJ, and is free software. You can
+// This file is part of EBT, and is free software. You can
 // redistribute it and/or modify it under the terms of the GNU General
 // Public License (GPL); either version 2, or (at your option) any
 // later version.
 
-#ifndef SJ_PARSE_H
-#define SJ_PARSE_H
+#ifndef EBT_PARSE_H
+#define EBT_PARSE_H
 
 #include <string>
 #include <iostream>
 
 /* from ir.h */
-struct sj_module;
-struct sj_file;
+struct ebt_module;
+struct ebt_file;
 
 struct source_loc
 {
-  sj_file *file;
+  ebt_file *file;
   unsigned line;
   unsigned col;
 };
@@ -36,14 +36,14 @@ struct token
 
 std::ostream& operator << (std::ostream& o, const token& tok);
 
-void test_lexer (sj_module* m, std::istream& i,
+void test_lexer (ebt_module* m, std::istream& i,
                  const std::string source_name = "");
-void test_lexer (sj_module* m, const std::string& n,
+void test_lexer (ebt_module* m, const std::string& n,
                  const std::string source_name = "");
 
-sj_file *parse (sj_module* m, std::istream& i,
+ebt_file *parse (ebt_module* m, std::istream& i,
                 const std::string source_name = "");
-sj_file *parse (sj_module* m, const std::string& n,
+ebt_file *parse (ebt_module* m, const std::string& n,
                 const std::string source_name = "");
 
-#endif // SJ_PARSE_H
+#endif // EBT_PARSE_H

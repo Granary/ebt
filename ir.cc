@@ -1,7 +1,7 @@
 // language representation
 // Copyright (C) 2014 Serguei Makarov
 //
-// This file is part of SJ, and is free software. You can
+// This file is part of EBT, and is free software. You can
 // redistribute it and/or modify it under the terms of the GNU General
 // Public License (GPL); either version 2, or (at your option) any
 // later version.
@@ -23,8 +23,8 @@ using namespace std;
 
 // --- basic types ---
 
-sj_type type_string("string");
-sj_type type_int("foo");
+ebt_type type_string("string");
+ebt_type type_int("foo");
 
 // --- pretty-print predicate expressions ---
 
@@ -170,7 +170,7 @@ basic_probe::print (std::ostream &o) const
 }
 
 std::ostream&
-operator << (std::ostream &o, const sj_file &f)
+operator << (std::ostream &o, const ebt_file &f)
 {
   f.print(o);
   return o;
@@ -184,7 +184,7 @@ global_data::print (std::ostream &o) const
 }
 
 void
-sj_file::print (std::ostream &o) const
+ebt_file::print (std::ostream &o) const
 {
 #ifdef ONLY_BASIC_PROBES
   for (unsigned i = 0; i < resolved_probes.size(); i++)
@@ -250,24 +250,24 @@ traversing_visitor::visit_conditional_expr (conditional_expr *s)
   s->falsevalue->visit(this);
 }
 
-// --- methods for sj_event ---
+// --- methods for ebt_event ---
 
 void
-sj_event::add_context(const string &path, const sj_type &type)
+ebt_event::add_context(const string &path, const ebt_type &type)
 {
   // TODOXXX
 }
 
-// --- methods for sj_file ---
+// --- methods for ebt_file ---
 
-sj_file::sj_file() {}
-sj_file::sj_file(const string& name) : name(name) {}
+ebt_file::ebt_file() {}
+ebt_file::ebt_file(const string& name) : name(name) {}
 
-// --- methods for sj_module ---
+// --- methods for ebt_module ---
 
-map<string, sj_event *> sj_module::events;
+map<string, ebt_event *> ebt_module::events;
 
-sj_module::sj_module()
+ebt_module::ebt_module()
   : handler_ticket(0), global_ticket(0), last_pass(4)
 {
   // TODOXXX populate context hierarchy using something like this:
@@ -296,15 +296,15 @@ sj_module::sj_module()
 }
 
 void
-sj_module::add_event (const string &path)
+ebt_module::add_event (const string &path)
 {
   // TODOXXX
 }
 
 void
-sj_module::compile()
+ebt_module::compile()
 {
-  sj_file *f;
+  ebt_file *f;
   if (has_contents)
     {
       istringstream input(script_contents);
@@ -315,7 +315,7 @@ sj_module::compile()
           return;
         }
 
-      sj_file *result = parse(this, input);
+      ebt_file *result = parse(this, input);
       if (result == NULL) { exit(1); } // TODOXXX error handling
       script_files.push_back(result);
     }
@@ -330,7 +330,7 @@ sj_module::compile()
           return;
         }
 
-      sj_file *result = parse(this, input);
+      ebt_file *result = parse(this, input);
       if (result == NULL) { exit(1); } // TODOXXX error handling
       script_files.push_back(result);
     }
@@ -398,9 +398,9 @@ sj_module::compile()
 }
 
 void
-sj_module::prepare_client_template(client_template &t)
+ebt_module::prepare_client_template(client_template &t)
 {
-  for (vector<sj_file *>::iterator it = script_files.begin();
+  for (vector<ebt_file *>::iterator it = script_files.begin();
        it != script_files.end(); it++) {
     for (vector<basic_probe *>::iterator jt = (*it)->resolved_probes.begin();
          jt != (*it)->resolved_probes.end(); jt++) {
@@ -411,7 +411,7 @@ sj_module::prepare_client_template(client_template &t)
 }
 
 void
-sj_module::emit_fake_client(translator_output& o)
+ebt_module::emit_fake_client(translator_output& o)
 {
   fake_client_template t(this);
   prepare_client_template(t);
@@ -419,7 +419,7 @@ sj_module::emit_fake_client(translator_output& o)
 }
 
 void
-sj_module::emit_dr_client(translator_output& o)
+ebt_module::emit_dr_client(translator_output& o)
 {
   dr_client_template t(this);
   prepare_client_template(t);

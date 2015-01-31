@@ -1,13 +1,13 @@
 // language representation
 // Copyright (C) 2014 Serguei Makarov
 //
-// This file is part of SJ, and is free software. You can
+// This file is part of EBT, and is free software. You can
 // redistribute it and/or modify it under the terms of the GNU General
 // Public License (GPL); either version 2, or (at your option) any
 // later version.
 
-#ifndef SJ_IR_H
-#define SJ_IR_H
+#ifndef EBT_IR_H
+#define EBT_IR_H
 
 #include <string>
 #include <vector>
@@ -20,26 +20,26 @@ struct token;
 
 // --- type system ---
 
-struct sj_type {
-  sj_type(const std::string &type_name): type_name(type_name) {}
+struct ebt_type {
+  ebt_type(const std::string &type_name): type_name(type_name) {}
   std::string type_name;
   // TODOXXX equality comparisons, copy constructors, printing, all that stuff
 };
 
-extern sj_type type_string;
-extern sj_type type_int;
+extern ebt_type type_string;
+extern ebt_type type_int;
 
-struct sj_array_type: public sj_type {
-  sj_array_type(const std::string &type_name): sj_type(type_name) {}
+struct ebt_array_type: public ebt_type {
+  ebt_array_type(const std::string &type_name): ebt_type(type_name) {}
   // TODOXXX
 };
 
 // XXX move out of the header
-inline sj_type
-type_array(const sj_type &base_type)
+inline ebt_type
+type_array(const ebt_type &base_type)
 {
   // XXX: error if base_type is already an array
-  return sj_array_type(base_type.type_name);
+  return ebt_array_type(base_type.type_name);
   // TODOXXX
 }
 
@@ -168,16 +168,16 @@ struct probe {
 std::ostream& operator << (std::ostream &o, const probe &p);
 
 struct global_data {
-  unsigned id; // TODOXXX set id when adding to sj_file
+  unsigned id; // TODOXXX set id when adding to ebt_file
   void print (std::ostream &o) const;
 };
 
 // --- built-in events and context values ---
 
 // TODOXXX rename this to something intelligible?
-struct sj_event {
+struct ebt_event {
   // TODOXXX
-  void add_context(const std::string &path, const sj_type &type);
+  void add_context(const std::string &path, const ebt_type &type);
 };
 
 // --- probe representation ---
@@ -213,9 +213,9 @@ std::ostream& operator << (std::ostream &o, const basic_probe &p);
 
 // --- files and modules ---
 
-struct sj_file {
-  sj_file ();
-  sj_file (const std::string& name);
+struct ebt_file {
+  ebt_file ();
+  ebt_file (const std::string& name);
 
   std::string name;
 
@@ -224,7 +224,7 @@ struct sj_file {
   void print(std::ostream &o) const; // TODOXXX
 };
 
-std::ostream& operator << (std::ostream &o, const sj_file &f);
+std::ostream& operator << (std::ostream &o, const ebt_file &f);
 
 /* from util.h */
 struct translator_output;
@@ -232,11 +232,11 @@ struct translator_output;
 /* from emit.h */
 struct client_template;
 
-struct sj_module {
+struct ebt_module {
 private:
-  static std::map<std::string, sj_event *> events;
+  static std::map<std::string, ebt_event *> events;
 
-  std::vector<sj_file *> script_files;
+  std::vector<ebt_file *> script_files;
 
   // Used to distinguish top-level script elements with a unique numerical id:
   unsigned handler_ticket;
@@ -252,7 +252,7 @@ private:
   void prepare_client_template (client_template &t);
 
 public:
-  sj_module ();
+  ebt_module ();
 
   unsigned get_handler_ticket() { return handler_ticket++; }
   unsigned get_global_ticket() { return global_ticket++; }
@@ -269,4 +269,4 @@ public:
   void emit_dr_client(translator_output &o);
 };
 
-#endif // SJ_IR_H
+#endif // EBT_IR_H

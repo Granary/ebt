@@ -1,13 +1,13 @@
 // backend generation
 // Copyright (C) 2014 Serguei Makarov
 //
-// This file is part of SJ, and is free software. You can
+// This file is part of EBT, and is free software. You can
 // redistribute it and/or modify it under the terms of the GNU General
 // Public License (GPL); either version 2, or (at your option) any
 // later version.
 
-#ifndef SJ_EMIT_H
-#define SJ_EMIT_H
+#ifndef EBT_EMIT_H
+#define EBT_EMIT_H
 
 #define PROBE_COUNTERS
 
@@ -19,28 +19,28 @@
 struct translator_output;
 
 #include "ir.h"
-/* provides sj_module, handlers, basic_probe_type, basic_probe, expr, global_data */
+/* provides ebt_module, handlers, basic_probe_type, basic_probe, expr, global_data */
 
 typedef std::map<basic_probe_type, std::vector<basic_probe *> > probe_map;
 
 // --- generic C "unparser", to be used for both DR and Granary tasks ---
 
 // TODOXXX start stupidly simple with the context mapping
-typedef std::map<std::string, std::string> sj_context;
+typedef std::map<std::string, std::string> ebt_context;
 
 class c_unparser {
  public:
   c_unparser();
-  void emit_expr(translator_output& o, expr *e, sj_context *ctx) const;
+  void emit_expr(translator_output& o, expr *e, ebt_context *ctx) const;
 };
 
 // --- client templates ---
 
 class client_template {
-  sj_module *module;
+  ebt_module *module;
 
 public:
-  client_template(sj_module *module) : module(module) {}
+  client_template(ebt_module *module) : module(module) {}
   virtual void register_probe(basic_probe *bp) = 0;
   virtual void register_global_data(global_data *g) = 0;
   virtual void emit(translator_output& o) = 0;
@@ -51,7 +51,7 @@ class fake_client_template: public client_template {
   std::vector<global_data *> globals;
 
 public:
-  fake_client_template(sj_module *module) : client_template(module) {}
+  fake_client_template(ebt_module *module) : client_template(module) {}
   void register_probe(basic_probe *bp);
   void register_global_data(global_data *g);
   void emit(translator_output& o);
@@ -65,7 +65,7 @@ class dr_client_template: public client_template {
   std::set<unsigned> seen_handlers; // -- used to avoid duplicates in all_handlers
 
   c_unparser unparser;
-  static sj_context ctxvars; // TODOXXX initialize
+  static ebt_context ctxvars; // TODOXXX initialize
 
   bool have(basic_probe_type mechanism) const;
 
@@ -95,10 +95,10 @@ class dr_client_template: public client_template {
   void emit_global_data(translator_output &o);
 
 public:
-  dr_client_template(sj_module *module);
+  dr_client_template(ebt_module *module);
   void register_probe(basic_probe *bp);
   void register_global_data(global_data *g);
   void emit(translator_output& o);
 };
 
-#endif // SJ_EMIT_H
+#endif // EBT_EMIT_H
