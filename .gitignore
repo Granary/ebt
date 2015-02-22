@@ -25,3 +25,4 @@ dr-demo/build/
 *.x86_64
 *.hex
 sj
+ebt
