@@ -280,11 +280,11 @@ main (int argc, char * const argv [])
   // compilation output, unless the verbose flag is set:
   ofstream cn("/dev/null"); cnull = &cn;
 
-  // XXX users need to make sure ebt_HOME is set
-  char *ebt_home_c = getenv("ebt_HOME");
+  // XXX users need to make sure EBT_HOME is set
+  char *ebt_home_c = getenv("EBT_HOME");
   if (!ebt_home_c)
     {
-      cerr << "need to set ebt_HOME environment variable" << endl;
+      cerr << "need to set EBT_HOME environment variable" << endl;
       exit(1);
     }
   string ebt_home(ebt_home_c);
