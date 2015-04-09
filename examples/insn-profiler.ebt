@@ -1,0 +1,22 @@
+func is_power_of_2(n) {
+  return (n & (n-1)) != 0
+}
+
+array divs    // - divisions
+array divs_p2 // — divisions by a power of 2
+
+/* Count the integer divisions performed
+   in each function of the target program: */
+probe insn($opcode == "div") and function {
+  divs[$name] ++
+  if (is_power_of_2(@op[2])) divs_p2[$name] ++
+}
+
+/* Once the program finishes running,
+   print a summary: */
+probe end {
+  printf("  div | div_p2 | function\n")
+  for (fname in div_count)
+    printf("%6d | %6d | %s\n", divs[fname],
+      divs_p2[fname], fname)
+}
