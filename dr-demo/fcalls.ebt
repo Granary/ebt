@@ -1,0 +1,15 @@
+// fcalls.ebt :: Function call tracing (XXX single-threaded for now)
+
+global level = 0
+
+probe function.entry {
+	for (i = 0; i < level; i++) printf("  ")
+	printf ("--> %s\n", $name)
+	level++
+}
+
+probe function.exit {
+	for (i = 0; i < level; i++) printf("  ")
+	printf ("<-- %s\n", $name)
+	level--
+}

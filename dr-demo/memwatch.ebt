@@ -1,0 +1,17 @@
+// memwatch.ebt :: Simple watchpoints example
+
+// Use 1 shadow bit per memory word:
+shadow watched:1
+array watch_addr
+
+probe obj.alloc and function ($name == "create_widget") {
+	watched[@addr] = true
+	// Set an entire range to refer to @addr:
+	watch_addr[@addr..@addr+@size-1] = @addr
+}
+
+probe obj.access and function {
+	if (watched[@addr])
+		printf("access widget at %p from %s()\n",
+		       watch_addr[@addr], $name)
+}
