@@ -128,7 +128,8 @@ system_command(vector<string> &args, string path = "", bool show_output = false)
   else
     waitpid(pid, &status, 0);
 
-  if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+  // XXX: drrun tends to like to exit with nonzero codes even if things are OK?
+  if (!WIFEXITED(status) /*|| WEXITSTATUS(status) != 0*/)
     {
       cerr << "system command failed: " + cmd << endl;
       exit(1);
@@ -357,6 +358,7 @@ main (int argc, char * const argv [])
   co.newline() << "  message(FATAL_ERROR \"DynamoRIO package required to build\")";
   co.newline() << "endif(NOT DynamoRIO_FOUND)";
   co.newline() << "configure_DynamoRIO_client(ebt_client)";
+  co.newline();
 
   cmakefile.close();
   mesg() << "ebt: generated " << cmakefile_path << endl;
