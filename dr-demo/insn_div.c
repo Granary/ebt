@@ -26,7 +26,7 @@ handle_insn_event(app_pc addr, uint divisor) // XXX need to transmit context
 {
 	dr_mutex_lock(div_mutex);
 	div_count++;
-	if ((divisor & (divisor - 1)) != 0)
+	if ((divisor & (divisor - 1)) == 0)
 		div_p2_count++;
 	dr_mutex_unlock(div_mutex);
 }
@@ -42,7 +42,7 @@ bb_event(void *drcontext, void *tag, instrlist_t *bb,
 		next_instr = instr_get_next_app(instr);
 		opcode = instr_get_opcode(instr);
 
-		if (opcode == OP_div) {
+		if (opcode == OP_div || opcode == OP_idiv) {
 			dr_insert_clean_call(drcontext, bb, instr,
 			                     (void *)handle_insn_event,
 			                     false /* no fp save */, 2,

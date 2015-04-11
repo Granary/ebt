@@ -1,12 +1,16 @@
 // insn_div.ebt :: count the number of DIV instructions executed by the target
 
+func is_powerof2(n) {
+	return (n & (n-1)) == 0
+}
+
 global div_count
 global div_p2_count
 
-probe insn($opcode == "div") {
+probe insn($opcode == "div" || $opcode == "idiv") {
 	div_count++
-	if ((@op.2 & (@op.2 - 1)) != 0) // -- divisor is a power of two
-		div_p2_count++
+	// On x86, divisor is the first operand:
+	if (is_powerof2(@op[0])) div_p2_count++
 }
 
 probe end {

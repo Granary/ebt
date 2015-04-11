@@ -1,0 +1,22 @@
+// insn_div_array.ebt :: count the number of DIV instructions in each function
+
+func is_powerof2(n) {
+	return (n & (n-1)) == 0
+}
+
+array div_count
+array div_p2_count
+
+probe insn($opcode == "div" || $opcode == "idiv") and function {
+	div_count[$name]++
+	// On x86, divisor is the first operand:
+	if (is_powerof2(@op[0])) div_p2_count[$name]++
+}
+
+probe end {
+	printf("======\n")
+	printf("TOTALS\n")
+	for (fname in div_count)
+		printf(" %6d div | %6d div_p2 in %s()\n",
+		       div_count[fname], div_p2_count[fname], fname)
+}

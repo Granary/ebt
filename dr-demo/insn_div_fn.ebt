@@ -1,0 +1,23 @@
+// insn_div_array.ebt :: count the number of DIV instructions
+// ... only include divisions in the function calculate()
+
+func is_powerof2(n) {
+	return (n & (n-1)) == 0
+}
+
+global div_count
+global div_p2_count
+
+probe insn($opcode == "div" || $opcode == "idiv")
+      and function ($name == "calculate") {
+	div_count++
+	// On x86, divisor is the first operand:
+	if (is_powerof2(@op[0])) div_p2_count++
+}
+
+probe end {
+	printf("======\n")
+	printf("TOTALS\n")
+	printf(" %6d div | %6d div_p2 in %s()\n",
+	       div_count, div_p2_count, "calculate")
+}
