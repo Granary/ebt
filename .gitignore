@@ -1,5 +1,7 @@
 private-*
 dr-demo/build/
+dr-demo/test/*
+!dr-demo/test/*.c
 
 # Object files
 *.o
