@@ -2,6 +2,10 @@
 
 #include "dr_api.h"
 #include "drsyms.h"
+
+// For understanding the hashtable, it's useful to look at DR's implementation:
+// - https://github.com/DynamoRIO/dynamorio/blob/master/ext/drcontainers/hashtable.c
+// - https://github.com/DynamoRIO/dynamorio/blob/master/ext/drcontainers/hashtable.h
 #include "hashtable.h"
 
 // common defines
