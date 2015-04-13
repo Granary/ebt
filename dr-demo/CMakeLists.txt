@@ -3,6 +3,8 @@
 # $ make
 # $ $DYNAMORIO_HOME/bin64/drrun -c libhello.so -- ls
 
+cmake_minimum_required(VERSION 3.0)
+
 add_library(empty SHARED empty.c)
 add_library(hello SHARED hello.c)
 add_library(insn_div SHARED insn_div.c)
