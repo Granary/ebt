@@ -86,8 +86,6 @@ dr_init(client_id_t id)
 	}
 }
 
-// TODOXXX rewrite below
-
 static dr_emit_flags_t
 bb_event(void *drcontext, void *tag, instrlist_t *bb,
          bool for_trace, bool translating)
