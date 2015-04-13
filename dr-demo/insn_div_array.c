@@ -10,7 +10,8 @@
 
 // common defines
 #define MAX_SYM_RESULT 256
-#define HASH_SIZE_DEFAULT 8 // TODOXXX
+#define HASH_SIZE_DEFAULT 8
+// XXX need to pick a reasonable # of hash bits
 
 // common map functions
 // XXX this should use the common map implementation in ../runtime/
