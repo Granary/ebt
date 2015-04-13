@@ -1,4 +1,4 @@
-// fcalls.ebt :: Function call tracing (XXX single-threaded for now)
+// fcalls.c :: Function call tracing (XXX single-threaded for now)
 
 #include "dr_api.h"
 #include "drsyms.h"
