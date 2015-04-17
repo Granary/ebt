@@ -27,3 +27,24 @@ configure_DynamoRIO_client(insn_div_fn)
 use_DynamoRIO_extension(insn_div_fn drsyms)
 configure_DynamoRIO_client(fcalls)
 use_DynamoRIO_extension(fcalls drsyms)
+
+# TODOXXX Umbra is included by default with DynamoRIO and DrMemory
+# TODOXXX However the DrMemory bundled in my install is 32-bit only
+# TODOXXX Some way to resolve this is necessary down the line?
+
+# Watchpoints example also requires Umbra:
+#find_package(DrMemoryFramework)
+#if (DrMemoryFramework_FOUND)
+  add_library(memdummy SHARED memdummy.c)
+  #add_library(memwatch SHARED memwatch.c)
+
+  configure_DynamoRIO_client(memdummy)
+  use_DynamoRIO_extension(memdummy umbra)
+
+  #configure_DynamoRIO_client(memwatch)
+  #use_DynamoRIO_extension(memwatch drcontainers)
+  #use_DynamoRIO_extension(memwatch drsyms)
+  #use_DynamoRIO_extension(memwatch umbra)
+#else (DrMemoryFramework_FOUND)
+#  message(FATAL_ERROR "DrMemory (Umbra) package required to build memwatch")
+#endif (DrMemoryFramework_FOUND)

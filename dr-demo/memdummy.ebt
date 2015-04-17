@@ -1,0 +1,9 @@
+// memdummy.ebt :: Just initialize some shadow memory
+
+// Use 1 shadow bit per memory word:
+shadow watched:1
+array watch_addr
+
+probe begin {
+	printf("It did not asplode.\n")
+}
