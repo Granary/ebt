@@ -180,7 +180,8 @@ lexer::get_pos()
 string
 lexer::source(unsigned start, unsigned end)
 {
-  return input_contents.substr(start, end);
+  assert (end >= start);
+  return input_contents.substr(start, end - start);
 }
 
 int
@@ -1105,10 +1106,13 @@ parser::parse_basic_probe ()
   bp->body = new handler; // TODOXXX
   bp->body->id = m->get_handler_ticket();
 
-  bp->body->orig_source = input.source(probe_start, input.get_pos()); // TODOXXX only works well for oneliner probes -- need to collapse multiline condition chains
-
   swallow_op("{");
   swallow_op("}");
+
+  // XXX The correctness of this depends very flakily on how swallow_op works:
+  unsigned probe_end = input.get_pos();
+  bp->body->orig_source = input.source(probe_start, probe_end); // TODOXXX only works well for oneliner probes -- need to collapse multiline condition chains
+  // DEBUG: cerr << "OBTAINED SOURCE " << probe_start << " " << probe_end << " :: " << bp->body->orig_source << endl;
 
   return bp;
 }
