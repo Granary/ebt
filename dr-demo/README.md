@@ -8,7 +8,7 @@ To compile and run the hand-written clients, use a procedure along the following
 
     mkdir build
     cd build
-    cmake ..
+    cmake -DDynamoRIO_DIR=$DYNAMORIO_HOME/cmake ..
     make
     
     # Compile a suitable target program:
@@ -16,6 +16,8 @@ To compile and run the hand-written clients, use a procedure along the following
     
     # Now, to run e.g. the insn_div client on a 64-bit system:
     $DYNAMORIO_HOME/bin64/drrun -c libinsn_div.so -- divtest3
+    # ... TODOXXX alternatively we may need to try:
+    drrun -root $DYNAMORIO_HOME -c libinsn_div.so -- divtest3
 
 To test the corresponding EBT script (in the top level of the EBT repo):
 

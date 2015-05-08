@@ -1,7 +1,9 @@
 # In a different folder, build these demos with something like:
 # $ cmake -DDynamoRIO_DIR=$DYNAMORIO_HOME/cmake /path/to/dr-demo
 # $ make
-# $ $DYNAMORIO_HOME/bin64/drrun -c libhello.so -- ls
+# $ drrun -root $DYNAMORIO_HOME -c libhello.so -- ls
+
+# TODOXXX This setup seems to ONLY work with DR 5.0.0-9 and not 5.1.0-RC
 
 cmake_minimum_required(VERSION 3.0)
 
