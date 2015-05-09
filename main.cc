@@ -36,8 +36,6 @@ using namespace std;
 #include "ir.h"
 #include "emit.h"
 
-// TODOXXX separate 'verbose' option (for the build process output)
-
 // --- paraphernalia for dealing with the system ---
 
 #define STANDARD_PERMISSIONS (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
@@ -161,9 +159,9 @@ usage(const char *prog_name)
           "  -g FILENAME      : output client source to file, instead of stdout\n"
           "  -t PATH          : create build folder in PATH (defaults to /tmp)\n"
           "  -f --fake        : (testing purposes only) output 'fake' client template\n"
-          "  -v --verbose     : show output of the compilation process\n" // TODOXXX
+          "  -v --verbose     : show output of the compilation process\n"
           "  -p PASS          : stop after pass (0:lex, 1:parse, 2:resolve, 3:emit, 4:run)\n",
-          // TODOXXX options for launching the target program
+          // XXX may want additional options for launching the target program
           prog_name, prog_name);
   exit(1);
 }
@@ -213,7 +211,7 @@ main (int argc, char * const argv [])
           has_outfile = true;
           outfile_path = string(optarg);
         case 'o':
-          // TODOXXX should be mutually exclusive with -p
+          // XXX Logically, this should be mutually exclusive with -p:
           run_client = false;
           script.last_pass = 3;
           break;
@@ -232,7 +230,7 @@ main (int argc, char * const argv [])
         }
     }
 
-  // TODOXXX UGLY harmonize run_client and -p option
+  // Harmonize run_client and -p options:
   if (!run_client && script.last_pass == 4)
     {
       script.last_pass = 3;
@@ -298,6 +296,7 @@ main (int argc, char * const argv [])
         tmp_path = tmp_prefix + "/ebt_" + md5hash(script.script_contents, true);
       else
         tmp_path = tmp_prefix + "/ebt_" + md5hash(script.script_path, false);
+      // TODOXXX deal with the case when the target dir already exists
       mkdir(tmp_path.c_str(), STANDARD_PERMISSIONS);
       mesg() << "ebt: creating temporary directory " << tmp_path << endl;
 
@@ -362,7 +361,7 @@ main (int argc, char * const argv [])
 
   cmakefile.close();
   mesg() << "ebt: generated " << cmakefile_path << endl;
-  // TODOXXX extra verbosity: show cmakefile contents
+  // XXX Optional extra verbosity: show cmakefile contents
 
   // (3) Create directory build/
   string build_path = tmp_path + "/build";
@@ -391,10 +390,9 @@ main (int argc, char * const argv [])
   dr_command.push_back(build_path + "/libebt_client.so");
   dr_command.push_back("--");
   dr_command.insert(dr_command.end(), target_command.begin(), target_command.end());
-  // TODOXXX assemble command line for the target program
+  // XXX assemble command line for the target program
 
   system_command(dr_command, orig_path, true);
 
-  // TODOXXX clean up: delete temporary directory
-  // TODOXXX clean up: restore old working directory (before running DR?)
+  // XXX we may want to delete the temporary directory after running
 }
