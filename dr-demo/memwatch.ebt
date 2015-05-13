@@ -5,9 +5,9 @@ shadow watched:1
 array watch_addr
 
 probe obj.alloc and function ($name == "create_widget") {
-	watched[@addr] = true
 	// Set an entire range to refer to @addr:
 	watch_addr[@addr..@addr+@size-1] = @addr
+	watched[@addr..@addr+@size-1] = true
 }
 
 probe obj.access and function {
