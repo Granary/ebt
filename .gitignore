@@ -3,6 +3,8 @@ dr-demo/build/
 dr-demo/test/*
 !dr-demo/test/*.c
 
+.DS_Store
+
 # Object files
 *.o
 *.ko
