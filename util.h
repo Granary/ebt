@@ -1,5 +1,5 @@
 // misc utilities
-// Copyright (C) 2014 Serguei Makarov
+// Copyright (C) 2014-2015 Serguei Makarov
 // Copyright (C) 2005-2013 Red Hat Inc.
 // Copyright (C) 2005-2008 Intel Corporation.
 // Copyright (C) 2010 Novell Corporation.

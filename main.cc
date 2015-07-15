@@ -1,5 +1,5 @@
 // main program
-// Copyright (C) 2014 Serguei Makarov
+// Copyright (C) 2014-2015 Serguei Makarov
 //
 // This file is part of EBT, and is free software. You can
 // redistribute it and/or modify it under the terms of the GNU General
