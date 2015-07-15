@@ -31,4 +31,22 @@ public:
 std::string c_stringify(const std::string &unescaped);
 std::string c_comment(const std::string &unescaped);
 
+// Miscellaneous debugging utilities:
+
+#ifdef NO_TRACE
+
+#define TRACE(label,x) (x)
+
+#define TRACE_MANY(xs) (0)
+
+#else
+
+#define TRACE(label,x) ( std::cerr << #label << ": " << (x) << endl, (x) )
+// XXX be careful of double evaluation when using this
+
+#define TRACE_MANY(xs) ( std::cerr << xs << endl )
+// -- designed for use like so: TRACE_MANY(x << y << z)
+
+#endif
+
 #endif // EBT_UTIL_H
