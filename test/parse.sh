@@ -1,3 +1,5 @@
+# Be sure to run using bash -x.
+
 # GOOD INPUT
 ./ebt -p1 -e 'probe insn {}'
 ./ebt -p1 -e 'probe insn ($opcode == "div") {}'

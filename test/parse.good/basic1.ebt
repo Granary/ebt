@@ -2,4 +2,6 @@ probe insn {}
 probe insn ($opcode == "div") {}
 probe insn ($fname == "foo", $opcode == "div") {}
 probe insn ($fname != "boring") {}
-probe fcall ($name == "foo") {}
+
+// TODOXXX need to add fcall to the list of supported basic probes
+// probe fcall ($name == "foo") {}

@@ -1,3 +1,5 @@
+# Be sure to run using bash -x.
+
 ./ebt -p3 -e 'probe insn {}'
 ./ebt -p3 -e 'probe insn ($opcode == "div", $fname == "foo") {}'
 ./ebt -p3 -e 'probe insn ($opcode == "div", $fname != "boring") {}'

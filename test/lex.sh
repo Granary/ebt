@@ -1,3 +1,5 @@
+# Be sure to run using bash -x.
+
 # GOOD INPUT
 ./ebt -p0 -e '123'
 ./ebt -p0 -e 'probe insn {}'
