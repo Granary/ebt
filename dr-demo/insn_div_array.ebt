@@ -16,7 +16,7 @@ probe insn($opcode == "div" || $opcode == "idiv") and function {
 probe end {
 	printf("======\n")
 	printf("TOTALS\n")
-	for (fname in div_count)
+	foreach (fname in div_count)
 		printf(" %6d div | %6d div_p2 in %s()\n",
 		       div_count[fname], div_p2_count[fname], fname)
 }
