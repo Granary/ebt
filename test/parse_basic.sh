@@ -10,5 +10,6 @@
 ./ebt -p1 ./test/parse.bad/1.ebt
 ./ebt -p1 ./test/parse.bad/2.ebt
 ./ebt -p1 ./test/parse.bad/3.ebt
+./ebt -p1 ./test/parse.bad/4.ebt
 ./ebt -p1 ./test/parse.good/1.ebt
 ./ebt -p1 ./test/parse.good/2.ebt
